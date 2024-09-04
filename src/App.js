@@ -1,8 +1,11 @@
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import NavBar from './components/navbar.js';
 
 function App() {
   return (
     <div className="App">
+      <NavBar />
       <header className="App-header">
         <p>
           Edit <code>src/App.js</code> and save to reload.
