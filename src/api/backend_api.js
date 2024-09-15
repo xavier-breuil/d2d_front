@@ -7,12 +7,19 @@ const backendUrls = {
 };
 
 export function getWeekTask(weekNum) {
+    let weeklyTask = [];
+    let datedTask = [];
     return axios.get(`${backendBaseUrl}${backendUrls.weekTask}?week_number=${weekNum}`)
         .then(response => {
-            console.log(response);
+            weeklyTask = response.data.results;
+        })
+        .then(() => {
+            return axios.get(`${backendBaseUrl}${backendUrls.datedTask}?week=${weekNum}`)
+        })
+        .then(response => {
+            datedTask = response.data.results;
         })
         .catch(error => {
-            console.error('error');
             console.error(error);
         })
 }
