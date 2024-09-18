@@ -18,6 +18,7 @@ export function getWeekTask(weekNum) {
         })
         .then(response => {
             datedTask = response.data.results;
+            return {weeklyTask, datedTask}
         })
         .catch(error => {
             console.error(error);
