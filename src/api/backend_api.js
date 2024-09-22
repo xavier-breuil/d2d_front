@@ -6,15 +6,15 @@ const backendUrls = {
     datedTask: 'dated_task/'
 };
 
-export function getWeekTask(weekNum) {
+export function getWeekTask(weekNum, year) {
     let weeklyTask = [];
     let datedTask = [];
-    return axios.get(`${backendBaseUrl}${backendUrls.weekTask}?week_number=${weekNum}`)
+    return axios.get(`${backendBaseUrl}${backendUrls.weekTask}?week_number=${weekNum}&year=${year}`)
         .then(response => {
             weeklyTask = response.data.results;
         })
         .then(() => {
-            return axios.get(`${backendBaseUrl}${backendUrls.datedTask}?week=${weekNum}`)
+            return axios.get(`${backendBaseUrl}${backendUrls.datedTask}?week=${weekNum}&year=${year}`)
         })
         .then(response => {
             datedTask = response.data.results;

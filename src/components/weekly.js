@@ -6,18 +6,25 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
 import {getWeekTask} from '../api/backend_api';
-import {weekDays} from '../const/constants';
+import {weekDays} from '../utils/constants';
+import {getNextWeek, getPreviousWeek} from '../utils/functions';
+import ChangeWeekButton from './buttons/changeWeekButton'
 
-function Weekly() {
+function Weekly({weekNum, currentYear}) {
     // define state
     const [weekTasks, setWeekTasks] = useState([]);
     const [datedTasks, setDatedTasks] = useState([]);
+    const [weekNumber, setWeekNumber] = useState(weekNum);
+    const [year, setYear] = useState(currentYear);
+    const nextWeek = getNextWeek(weekNumber, year);
+    const previousWeek = getPreviousWeek(weekNumber, year);
 
     useEffect(() => {
-        getWeekTask(moment().isoWeek())
+        getWeekTask(weekNumber, year)
             .then(tasks => {
                 setWeekTasks(tasks.weeklyTask);
                 const datedTasks = tasks.datedTask;
+                // eslint-disable-next-line
                 datedTasks.map(task => {
                     task.dayOfWeek = moment(task.date).isoWeekday()
                 })
@@ -25,15 +32,26 @@ function Weekly() {
             })
     },
 
-        // no dependancies
-        []
+        // useEffect on state changes
+        [weekNumber, year]
     )
+
+    const goToPreviousWeek = () => {
+        setWeekNumber(previousWeek.weekNumber);
+        setYear(previousWeek.year);
+    }
+
+    const goToNextWeek = () => {
+        setWeekNumber(nextWeek.weekNumber);
+        setYear(nextWeek.year);
+    }
+
     return (
         <Container>
             <Row>
-                <Col>semaine précédente</Col>
-                <Col>semaine {moment().isoWeek()}</Col>
-                <Col>semaine suivante</Col>
+                <ChangeWeekButton buttonText="semaine précédente" handleClick={goToPreviousWeek} />
+                <Col className="fw-bold fs-5 col-8">semaine {weekNumber}</Col>
+                <ChangeWeekButton buttonText="semaine suivante" handleClick={goToNextWeek} />
             </Row>
             <Row>
                 <Col>
@@ -43,7 +61,7 @@ function Weekly() {
                                 {day.name}
                             </Row>
                             {datedTasks.filter(
-                                t => t.dayOfWeek == day.weekdayNumber
+                                t => t.dayOfWeek === day.weekdayNumber
                                 ).map(
                                     t=> {
                                         return (
