@@ -36,6 +36,7 @@ const Task = () => {
     const validateAndPost = (event) => {
         event.preventDefault();
 
+        // Check for errors in form
         const fieldErrors = [];
         if (emptyString(taskName)) {
             fieldErrors.push('nom de la tache non valide');
@@ -59,7 +60,7 @@ const Task = () => {
     return (
         <Form onSubmit={validateAndPost}>
             {formError.length > 0 &&
-                <Alert variant="danger">{formError}</Alert>
+                <Alert variant="danger" onClose={() => setFormError('')} dismissible>{formError}</Alert>
             }
             <div key="inline-radios" className="m-4 text-start">
             <Form.Check
