@@ -26,3 +26,36 @@ export const getPreviousWeek = (weekNumber, year) => {
         weekNumber: weekNumber - 1
     }
 }
+
+export const emptyString = str => {
+    return !str.replace(/\s+/g, '');
+}
+
+const isWeek = str => {
+    const num = Number(str);
+    return (
+        Number.isInteger(num) &&
+        num >=1 &&
+        num <=53)
+}
+
+const isYear = str => {
+    const num = Number(str);
+    return (
+        Number.isInteger(num) &&
+        num >=2024)
+
+}
+
+export const correctWeekYear = (weekStr, yearStr) => {
+    if (!isWeek(weekStr) || !isYear(yearStr)) {
+        return false;
+    }
+    const week = Number(weekStr);
+    const year = Number(yearStr);
+    return week <= moment().year(year).isoWeeksInYear();
+}
+
+export const isDate = dateStr => {
+    return moment(dateStr, 'YYYY-MM-DD').isValid();
+}
