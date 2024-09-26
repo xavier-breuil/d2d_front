@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import Alert from 'react-bootstrap/Alert';
 
 import { emptyString, correctWeekYear, isDate } from '../utils/functions';
 
@@ -10,6 +11,7 @@ const Task = () => {
     const [taskWeek, setTaskWeek] = useState('');
     const [taskYear, setTaskYear] = useState('');
     const [taskDate, setTaskDate] = useState('');
+    const [formError, setFormError] = useState([]);
 
     const typeChanged = event => {
         setTaskType(event.target.value);
@@ -31,29 +33,34 @@ const Task = () => {
         setTaskDate(event.target.value);
     }
 
-    const validateAndPost = () => {
+    const validateAndPost = (event) => {
+        event.preventDefault();
+
+        const fieldErrors = [];
         if (emptyString(taskName)) {
-            // TODO: display an error message
-            console.log('empty name');
-            return;
+            fieldErrors.push('nom de la tache non valide');
         }
         if (taskType === 'week') {
             if (!correctWeekYear(taskWeek, taskYear)) {
-                // TODO: display an error message
-                console.log('error in week or year');
-                return;
+                fieldErrors.push('semaine ou année incorrecte');
             }
         }
         if (taskType === 'date' && !isDate(taskDate)) {
-            // TODO: display an error message
-            console.log('error in date');
-            return;
+            fieldErrors.push('date incorrecte');
+        }
+        if (fieldErrors.length > 0) {
+            setFormError(`Erreur sur le formulaire: ${fieldErrors.join(', ')}`)
+        } else {
+            setFormError('');
         }
         //TODO: post data and success message
     }
 
     return (
         <Form onSubmit={validateAndPost}>
+            {formError.length > 0 &&
+                <Alert variant="danger">{formError}</Alert>
+            }
             <div key="inline-radios" className="m-4 text-start">
             <Form.Check
                     inline
