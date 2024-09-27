@@ -4,6 +4,7 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 
 import { emptyString, correctWeekYear, isDate } from '../utils/functions';
+import { createTask } from '../api/backend_api';
 
 const Task = () => {
     const [taskType, setTaskType] = useState('date');
@@ -12,6 +13,7 @@ const Task = () => {
     const [taskYear, setTaskYear] = useState('');
     const [taskDate, setTaskDate] = useState('');
     const [formError, setFormError] = useState([]);
+    const [createSucess, setCreateSuccess] = useState(false);
 
     const typeChanged = event => {
         setTaskType(event.target.value);
@@ -54,13 +56,36 @@ const Task = () => {
         } else {
             setFormError('');
         }
-        //TODO: post data and success message
+
+        const data = {
+            name: taskName,
+            done: false
+        }
+        if (taskType === 'week') {
+            data.week_number = taskWeek;
+            data.year = taskYear;
+        }
+        if (taskType === 'date') {
+            data.date = taskDate;
+        }
+        createTask(taskType, data).then(
+            response => {
+                if (response.status === 201) {
+                    setCreateSuccess(true);
+                } else {
+                    setFormError(`Erreur lors de l'envoie des données`);
+                }
+            }
+        )
     }
 
     return (
         <Form onSubmit={validateAndPost}>
             {formError.length > 0 &&
                 <Alert variant="danger" onClose={() => setFormError('')} dismissible>{formError}</Alert>
+            }
+            {createSucess &&
+                <Alert variant="success" onClose={() => setCreateSuccess(false)} dismissible>La tâche a bien été créée</Alert>
             }
             <div key="inline-radios" className="m-4 text-start">
             <Form.Check

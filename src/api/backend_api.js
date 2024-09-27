@@ -6,7 +6,7 @@ const backendUrls = {
     datedTask: 'dated_task/'
 };
 
-export function getWeekTask(weekNum, year) {
+export const getWeekTask = (weekNum, year) => {
     let weeklyTask = [];
     let datedTask = [];
     return axios.get(`${backendBaseUrl}${backendUrls.weekTask}?week_number=${weekNum}&year=${year}`)
@@ -23,4 +23,17 @@ export function getWeekTask(weekNum, year) {
         .catch(error => {
             console.error(error);
         })
+}
+
+export const createTask = (taskType, data) => {
+    if (taskType === 'week') {
+        return axios.post(
+            `${backendBaseUrl}${backendUrls.weekTask}`,
+            data)
+    }
+    if (taskType === 'date'){
+        return axios.post(
+            `${backendBaseUrl}${backendUrls.datedTask}`,
+            data)
+    }
 }
