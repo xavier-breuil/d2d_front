@@ -72,11 +72,19 @@ const Task = () => {
             response => {
                 if (response.status === 201) {
                     setCreateSuccess(true);
+                    resetForm();
                 } else {
                     setFormError(`Erreur lors de l'envoie des données`);
                 }
             }
         )
+    }
+
+    const resetForm = ()=> {
+        setTaskName('');
+        setTaskWeek('');
+        setTaskYear('');
+        setTaskDate('');
     }
 
     return (
@@ -111,14 +119,15 @@ const Task = () => {
             </div>
             <Form.Group className="m-4 col-lg-6 text-start" controlId="taskName">
                 <Form.Label>Nom de la tâche</Form.Label>
-                <Form.Control onChange={nameChanged}/>
+                <Form.Control onChange={nameChanged} value={taskName}/>
             </Form.Group>
             {taskType === 'date' &&
                 <Form.Group className="m-4 col-lg-6 text-start" controlId="taskDate">
                     <Form.Label>Date:</Form.Label>
                     <Form.Control
                         type="date"
-                        onChange={dateChanged}/>
+                        onChange={dateChanged}
+                        value={taskDate}/>
                 </Form.Group>
             }
             {taskType === 'week' &&
@@ -127,11 +136,13 @@ const Task = () => {
                     <Form.Control
                         type="number"
                         placeholder="numéro de la semaine (entre 1 et 53)"
-                        onChange={weekChanged}/>
+                        onChange={weekChanged}
+                        value={taskWeek}/>
                 <Form.Label>Année:</Form.Label>
                     <Form.Control
                         type="number"
-                        onChange={yearChanged}/>
+                        onChange={yearChanged}
+                        value={taskYear}/>
                 </Form.Group>
             }
             <Button type="submit">
