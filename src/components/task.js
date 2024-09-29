@@ -53,6 +53,7 @@ const Task = () => {
         }
         if (fieldErrors.length > 0) {
             setFormError(`Erreur sur le formulaire: ${fieldErrors.join(', ')}`)
+            return;
         } else {
             setFormError('');
         }
