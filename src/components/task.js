@@ -78,7 +78,9 @@ const Task = () => {
                     setFormError(`Erreur lors de l'envoie des données`);
                 }
             }
-        )
+        ).catch(error => {
+            setFormError(`Erreur lors de l'envoie des données`);
+        })
     }
 
     const resetForm = ()=> {
