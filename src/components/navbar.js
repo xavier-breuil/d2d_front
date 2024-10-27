@@ -11,6 +11,7 @@ function NavBar() {
           <Nav className="me-auto">
           <Nav.Link href="/">semainier</Nav.Link>
           <Nav.Link href="/task">ajouter tâche</Nav.Link>
+          <Nav.Link href="/mot">tâche récurrente</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
