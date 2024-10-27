@@ -7,7 +7,7 @@ import Tab from 'react-bootstrap/Tab';
 
 import {getMots} from '../api/backend_api'
 
-const Mot = () => {
+const MotList = () => {
     const [motList, setMotList] = useState([]);
     const [actMotId, setMotId] = useState('');
 
@@ -44,4 +44,4 @@ const Mot = () => {
     )
 }
 
-export default Mot;
+export default MotList;
