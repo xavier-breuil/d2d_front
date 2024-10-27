@@ -3,7 +3,8 @@ import axios from 'axios';
 const backendBaseUrl = 'http://127.0.0.1:8000/';
 const backendUrls = {
     weekTask:'week_task/',
-    datedTask: 'dated_task/'
+    datedTask: 'dated_task/',
+    mot: 'multi_occurences_task/'
 };
 
 export const getWeekTask = (weekNum, year) => {
@@ -36,4 +37,11 @@ export const createTask = (taskType, data) => {
             `${backendBaseUrl}${backendUrls.datedTask}`,
             data)
     }
+}
+
+export const getMots = () => {
+    return axios.get(`${backendBaseUrl}${backendUrls.mot}`)
+        .then(response => {
+            return response.data.results;
+        })
 }
