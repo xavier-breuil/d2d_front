@@ -28,3 +28,16 @@ export const weekDays = [
         name: 'dimanche'
     }
 ]
+
+export const defaultMot = {
+    name: '',
+    task_name: '',
+    start_date: new Date().toISOString().substring(0,10),
+    end_date: new Date().toISOString().substring(0,10),
+    number_a_day: '',
+    number_a_week: '',
+    every_week: [],
+    every_month: [],
+    every_last_day_of_month: false,
+    every_year:[]
+}

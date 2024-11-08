@@ -5,11 +5,13 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Tab from 'react-bootstrap/Tab';
 
-import {getMots} from '../api/backend_api'
+import {getMots} from '../api/backend_api';
+import MotForm from './motform';
+import {defaultMot} from '../utils/constants';
 
 const MotList = () => {
     const [motList, setMotList] = useState([]);
-    const [actMotId, setMotId] = useState('');
+    const [actMot, setMot] = useState(defaultMot);
 
     useEffect(() => {
         getMots()
@@ -21,6 +23,8 @@ const MotList = () => {
     []
     )
 
+    // TODO: Add new line at top to create a new mot.
+    // TODO: diferentiate scrolling in mot list from scrolling mot form.
     return (
         <Tab.Container>
             <Row>
@@ -30,13 +34,13 @@ const MotList = () => {
                             return <ListGroup.Item
                                 action
                                 key={'item_' + mot.id}
-                                onClick={() => setMotId(mot.id)}>{mot.name}</ListGroup.Item>
+                                onClick={() => setMot(mot)}>{mot.name}</ListGroup.Item>
                         })}
                     </ListGroup>
                 </Col>
                 <Col sm={9}>
                     <Tab.Content>
-                        {actMotId}
+                        <MotForm mot={actMot} />
                     </Tab.Content>
                 </Col>
             </Row>

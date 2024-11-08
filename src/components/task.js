@@ -99,7 +99,7 @@ const Task = () => {
                 <Alert variant="success" onClose={() => setCreateSuccess(false)} dismissible>La tâche a bien été créée</Alert>
             }
             <div key="inline-radios" className="m-4 text-start">
-            <Form.Check
+                <Form.Check
                     inline
                     label="semaine"
                     name="taskType"

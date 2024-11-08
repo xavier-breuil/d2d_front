@@ -59,3 +59,7 @@ export const correctWeekYear = (weekStr, yearStr) => {
 export const isDate = dateStr => {
     return moment(dateStr, 'YYYY-MM-DD').isValid();
 }
+
+export const dictToString = dateDict => {
+    return `${dateDict.year}-` + `${dateDict.month}-`.padStart(3, '0') + `${dateDict.day}`.padStart(2, '0');
+}
