@@ -45,3 +45,9 @@ export const getMots = () => {
             return response.data.results;
         })
 }
+
+export const updateMot = (motId, data) => {
+    return axios.patch(
+        `${backendBaseUrl}${backendUrls.mot}${motId}/`, data
+    )
+}

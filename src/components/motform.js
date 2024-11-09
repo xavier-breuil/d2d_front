@@ -9,6 +9,7 @@ import Alert from 'react-bootstrap/Alert';
 
 import {weekDays} from '../utils/constants';
 import {dictToString, emptyString, isDate} from '../utils/functions';
+import {updateMot} from '../api/backend_api';
 
 const MotForm = ({mot}) => {
     const [motName, setMotName] = useState(mot.name);
@@ -24,6 +25,7 @@ const MotForm = ({mot}) => {
     // id 0f 0 indicates creation when save, otherwise, update.
     const [motId, setMotId] = useState(mot.id || 0);
     const [formError, setFormError] = useState([]);
+    const [showSucessAlert, setShowSucessAlert] = useState(false);
 
     useEffect(() => {
         setMotName(mot.name);
@@ -182,14 +184,38 @@ const MotForm = ({mot}) => {
             setFormError('');
         }
         if (motId > 0) {
-            updateMot();
+            performUpdate();
         } else {
             createMot();
         }
     }
 
-    const updateMot = () => {
-        // TODO: Post data and display alert success
+    const getFormData = () => {
+        return {
+            name: motName,
+            task_name: taskName,
+            start_date: startDate,
+            end_date: endDate,
+            every_week: everyWeek,
+            every_month: everyMonth,
+            number_a_day: numberADay,
+            number_a_week: numberAWeek,
+            every_last_day_of_month: lastDayOfMonth
+            // TODO: add everyYear
+        }
+    }
+
+    const performUpdate = () => {
+        const data = getFormData();
+        updateMot(motId, data)
+            .then(_ => {
+                setShowSucessAlert(true);
+            })
+            .catch(error => {
+                console.log(error);
+                setFormError('Erruer lors de la modification de la recurrence')
+            })
+
     }
 
     const createMot = () => {
@@ -198,6 +224,9 @@ const MotForm = ({mot}) => {
 
     return (
         <Form onSubmit={validateAndPost}>
+            {showSucessAlert &&
+                <Alert variant="success" onClose={() => setShowSucessAlert(false)} dismissible>La récurrence a été enregistrée</Alert>
+            }
             {formError.length > 0 &&
                 <Alert variant="danger" onClose={() => setFormError('')} dismissible>{formError}</Alert>
             }
@@ -297,6 +326,7 @@ const MotForm = ({mot}) => {
             </Form.Group>
             <Form.Group className="m-4 col-lg-6 text-start" controlId="everyYear">
                 <Form.Label>jours de l'année*</Form.Label>
+                {/* TODO: replace date picker with a yearless date two list input */}
                 {everyYear.map((date, index) => {
                     return <Row className="mt-4 mb-4" key={'every_year_row_' + index}>
                                 <Col>
