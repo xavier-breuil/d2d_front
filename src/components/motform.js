@@ -8,8 +8,9 @@ import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 
 import {weekDays} from '../utils/constants';
-import {dictToString, emptyString, isDate} from '../utils/functions';
+import {emptyString, isDate} from '../utils/functions';
 import {updateMot} from '../api/backend_api';
+import YearlessDatePicker from './yearlessDatePicker';
 
 const MotForm = ({mot}) => {
     const [motName, setMotName] = useState(mot.name);
@@ -88,27 +89,6 @@ const MotForm = ({mot}) => {
         setEveryLastDayOfMonth(event.target.checked);
     }
 
-        /**
-         * Replace date in everyYear array after a chang in date input.
-         * 
-         * @param {*} event: event from the date input 
-         * @param {*} index : index of the date changed in everyYeart array
-         */
-    const everyYearChanged = (event, index) => {
-        // recommanded way by react: https://react.dev/learn/updating-arrays-in-state
-        const newDates = everyYear.map((date, i) => {
-            if (i !== index ) {
-                return date;
-            }
-            return {
-                year: event.target.value.substring(0,4),
-                month: event.target.value.substring(5,7),
-                day: event.target.value.substring(8,10)
-            }
-        });
-        setEveryYear(newDates);
-    }
-
     /**
      * Return true if the day number passed in param appears in everyWeek.
      * Initially used to fill the form to modify a mot.
@@ -144,6 +124,34 @@ const MotForm = ({mot}) => {
             year: year,
             month: month,
             day: day}])
+    }
+
+    const monthChanged = (newMonth, index) => {
+        // recommanded way by react: https://react.dev/learn/updating-arrays-in-state
+        const newDates = everyYear.map((date, i) => {
+            if (i !== index ) {
+                return date;
+            }
+            return {
+                month: newMonth,
+                day: date.day
+            }
+        });
+        setEveryYear(newDates);
+    }
+
+    const dayChanged = (newDay, index) => {
+        // recommanded way by react: https://react.dev/learn/updating-arrays-in-state
+        const newDates = everyYear.map((date, i) => {
+            if (i !== index ) {
+                return date;
+            }
+            return {
+                month: date.month,
+                day: newDay
+            }
+        });
+        setEveryYear(newDates);
     }
 
     const validateAndPost = event => {
@@ -326,24 +334,19 @@ const MotForm = ({mot}) => {
             </Form.Group>
             <Form.Group className="m-4 col-lg-6 text-start" controlId="everyYear">
                 <Form.Label>jours de l'année*</Form.Label>
-                {/* TODO: replace date picker with a yearless date two list input */}
-                {everyYear.map((date, index) => {
-                    return <Row className="mt-4 mb-4" key={'every_year_row_' + index}>
-                                <Col>
-                                    <Form.Control
-                                    type="date"
-                                    key={'every_year_delete_' + date}
-                                    onChange={event => everyYearChanged(event, index)}
-                                    value={dictToString(date)} />
-                                </Col>
-                                <Col>
-                                    <Button
-                                        key={'every_year_delete_' + index}
-                                        onClick={_ => deleteDate(index)}>supprimer
-                                    </Button>
-                                </Col>
-                            </Row>
-                })}
+                    {everyYear.map((date, index) => {
+                        return < Row className="mt-4 mb-4" key={"every_year_row_" + index}>
+                            <Col>
+                                <YearlessDatePicker
+                                    date={date}
+                                    parentMonthChanged={newMonth => monthChanged(newMonth, index)}
+                                    parentDayChanged={newDay => dayChanged(newDay, index)}
+                                    deleteDate={() => deleteDate(index)}
+                                    index={index}
+                                    key={'yearless_' + index}/>
+                            </Col>
+                        </Row>
+                    })}
                 <Row className="mt-4 mb-4">
                     <Col>
                         <Button onClick={addDay}>ajouter un jour</Button>                   
