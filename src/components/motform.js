@@ -259,11 +259,11 @@ const MotForm = ({mot}) => {
                 <Form.Control type="date" onChange={endDateChanged} value={endDate} />
             </Form.Group>
             <Form.Group className="m-4 col-lg-6 text-start" controlId="motNumberADay">
-                <Form.Label>récurrence quotidienne*</Form.Label>
+                <Form.Label>nombre de récurrence par jour*</Form.Label>
                 <Form.Control type="number" onChange={numberADayChanged} value={numberADay} />
             </Form.Group>
             <Form.Group className="m-4 col-lg-6 text-start" controlId="motNumberAWeek">
-                <Form.Label>récurrence hebdomadaire*</Form.Label>
+                <Form.Label>nombre de récurrence par semaine*</Form.Label>
                 <Form.Control type="number" onChange={numberAWeekChanged} value={numberAWeek} />
             </Form.Group>
             <Form.Group className="m-4 col-lg-6 text-start" controlId="motEveryWeek">
