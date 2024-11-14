@@ -9,7 +9,7 @@ import Alert from 'react-bootstrap/Alert';
 
 import {weekDays} from '../utils/constants';
 import {emptyString, isDate} from '../utils/functions';
-import {updateMot} from '../api/backend_api';
+import {updateMot, createMot} from '../api/backend_api';
 import YearlessDatePicker from './yearlessDatePicker';
 
 const MotForm = ({mot}) => {
@@ -26,7 +26,7 @@ const MotForm = ({mot}) => {
     // id 0f 0 indicates creation when save, otherwise, update.
     const [motId, setMotId] = useState(mot.id || 0);
     const [formError, setFormError] = useState([]);
-    const [showSucessAlert, setShowSucessAlert] = useState(false);
+    const [showSucessAlert, setShowSuccessAlert] = useState(false);
 
     useEffect(() => {
         setMotName(mot.name);
@@ -190,7 +190,7 @@ const MotForm = ({mot}) => {
         if (motId > 0) {
             performUpdate();
         } else {
-            createMot();
+            performCreation();
         }
     }
 
@@ -213,23 +213,31 @@ const MotForm = ({mot}) => {
         const data = getFormData();
         updateMot(motId, data)
             .then(_ => {
-                setShowSucessAlert(true);
+                setShowSuccessAlert(true);
             })
             .catch(error => {
                 console.log(error);
-                setFormError('Erruer lors de la modification de la recurrence')
+                setFormError('Erreur lors de la modification de la récurrence')
             })
 
     }
 
-    const createMot = () => {
-        // TODO: Post data and display alert success
+    const performCreation = () => {
+        const data = getFormData();
+        createMot(data)
+            .then(_ => {
+                setShowSuccessAlert(true);
+            })
+            .catch(error => {
+                console.log(error);
+                setFormError('Erreur lors de la crétion de la récurrence')
+            })
     }
 
     return (
         <Form onSubmit={validateAndPost}>
             {showSucessAlert &&
-                <Alert variant="success" onClose={() => setShowSucessAlert(false)} dismissible>La récurrence a été enregistrée</Alert>
+                <Alert variant="success" onClose={() => setShowSuccessAlert(false)} dismissible>La récurrence a été enregistrée</Alert>
             }
             {formError.length > 0 &&
                 <Alert variant="danger" onClose={() => setFormError('')} dismissible>{formError}</Alert>

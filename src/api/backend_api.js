@@ -51,3 +51,9 @@ export const updateMot = (motId, data) => {
         `${backendBaseUrl}${backendUrls.mot}${motId}/`, data
     )
 }
+
+export const createMot = data => {
+    return axios.post(
+        `${backendBaseUrl}${backendUrls.mot}`, data
+    )
+}
