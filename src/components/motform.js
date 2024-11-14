@@ -117,13 +117,9 @@ const MotForm = ({mot}) => {
 
     const addDay = () => {
         const newDate = new Date();
-        const year = newDate.toISOString().substring(0, 4);
-        const month = newDate.toISOString().substring(5, 7);
-        const day = newDate.toISOString().substring(8,10);
         setEveryYear([...everyYear, {
-            year: year,
-            month: month,
-            day: day}])
+            month: newDate.getMonth() + 1, //january is 0
+            day: newDate.getDate()}])
     }
 
     const monthChanged = (newMonth, index) => {
@@ -133,7 +129,7 @@ const MotForm = ({mot}) => {
                 return date;
             }
             return {
-                month: newMonth,
+                month: Number(newMonth),
                 day: date.day
             }
         });
@@ -148,7 +144,7 @@ const MotForm = ({mot}) => {
             }
             return {
                 month: date.month,
-                day: newDay
+                day: Number(newDay)
             }
         });
         setEveryYear(newDates);
@@ -208,8 +204,8 @@ const MotForm = ({mot}) => {
             every_month: everyMonth,
             number_a_day: numberADay,
             number_a_week: numberAWeek,
-            every_last_day_of_month: lastDayOfMonth
-            // TODO: add everyYear
+            every_last_day_of_month: lastDayOfMonth,
+            every_year: everyYear
         }
     }
 
