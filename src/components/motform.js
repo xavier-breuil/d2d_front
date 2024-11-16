@@ -12,7 +12,7 @@ import {emptyString, isDate} from '../utils/functions';
 import {updateMot, createMot} from '../api/backend_api';
 import YearlessDatePicker from './yearlessDatePicker';
 
-const MotForm = ({mot}) => {
+const MotForm = ({mot, parentMotNameChanged}) => {
     const [motName, setMotName] = useState(mot.name);
     const [taskName, setTaskName] = useState(mot.task_name);
     const [startDate, setStartDate] = useState(mot.start_date);
@@ -45,6 +45,7 @@ const MotForm = ({mot}) => {
 
     const motNameChanged = event => {
         setMotName(event.target.value);
+        parentMotNameChanged(event.target.value);
     }
 
     const taskNameChanged = event => {

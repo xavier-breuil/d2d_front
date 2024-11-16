@@ -30,8 +30,8 @@ export const weekDays = [
 ]
 
 export const defaultMot = {
-    name: '',
-    task_name: '',
+    name: 'nouvelle récurrence',
+    task_name: 'nouvelle tâche',
     start_date: new Date().toISOString().substring(0,10),
     end_date: new Date().toISOString().substring(0,10),
     number_a_day: '',
