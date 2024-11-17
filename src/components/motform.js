@@ -12,7 +12,7 @@ import {emptyString, isDate} from '../utils/functions';
 import {updateMot, createMot} from '../api/backend_api';
 import YearlessDatePicker from './yearlessDatePicker';
 
-const MotForm = ({mot, parentMotNameChanged}) => {
+const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled}) => {
     const [motName, setMotName] = useState(mot.name);
     const [taskName, setTaskName] = useState(mot.task_name);
     const [startDate, setStartDate] = useState(mot.start_date);
@@ -228,6 +228,7 @@ const MotForm = ({mot, parentMotNameChanged}) => {
         createMot(data)
             .then(_ => {
                 setShowSuccessAlert(true);
+                setAddButtonDisabled(false);
             })
             .catch(error => {
                 console.log(error);

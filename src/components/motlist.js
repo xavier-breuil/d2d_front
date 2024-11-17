@@ -14,11 +14,21 @@ const MotList = () => {
     const [motList, setMotList] = useState([]);
     const [actMot, setMot] = useState(defaultMot);
     const [addedMot, setAddedMot] = useState(0);
+    const [addButtonDisabled, setAddButtonDisabled] = useState(false);
 
     useEffect(() => {
         getMots()
             .then(mots => {
                 setMotList(mots);
+                return mots[0];
+            })
+            .then(mot => {
+                if (mot) {
+                    setMot(mot);
+                } else {
+                    setMot(defaultMot);
+                    setAddButtonDisabled(false);
+                }
             })
     },
 
@@ -31,6 +41,7 @@ const MotList = () => {
         setMotList([...motList, newMot])
         setAddedMot(addedMot + 1);
         setMot(newMot);
+        setAddButtonDisabled(true);
     }
 
     const nameChanged = newName => {
@@ -52,7 +63,10 @@ const MotList = () => {
             <Row>
                 <Col sm={3}>
                     <ListGroup>
-                        <Button className="mt-4 mb-4" onClick={addMot}>ajouter une récurrence</Button>
+                        <Button
+                        className="mt-4 mb-4"
+                        onClick={addMot}
+                        disabled={addButtonDisabled}>ajouter une récurrence</Button>
                         {motList.map(mot => {
                             return <ListGroup.Item
                                 action
@@ -63,7 +77,10 @@ const MotList = () => {
                 </Col>
                 <Col sm={9}>
                     <Tab.Content>
-                        <MotForm mot={actMot} parentMotNameChanged={nameChanged}/>
+                        <MotForm
+                        mot={actMot}
+                        parentMotNameChanged={nameChanged}
+                        setAddButtonDisabled={setAddButtonDisabled}/>
                     </Tab.Content>
                 </Col>
             </Row>
