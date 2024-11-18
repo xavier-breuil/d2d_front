@@ -57,11 +57,12 @@ const MotList = () => {
         setMotList(newNames);
     }
 
-    // TODO: diferentiate scrolling in mot list from scrolling mot form.
+    const scrollableColumn = {overflow: 'auto', maxHeight: '100%'};
+
     return (
         <Tab.Container>
-            <Row>
-                <Col sm={3}>
+            <Row style={{height: '100vh'}}>
+                <Col sm={3} style={scrollableColumn}>
                     <ListGroup>
                         <Button
                         className="mt-4 mb-4"
@@ -75,7 +76,7 @@ const MotList = () => {
                         })}
                     </ListGroup>
                 </Col>
-                <Col sm={9}>
+                <Col sm={9} style={scrollableColumn}>
                     <Tab.Content>
                         <MotForm
                         mot={actMot}
