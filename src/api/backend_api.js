@@ -57,3 +57,9 @@ export const createMot = data => {
         `${backendBaseUrl}${backendUrls.mot}`, data
     )
 }
+
+export const deleteDatedTask = taskId => {
+    return axios.delete(
+        `${backendBaseUrl}${backendUrls.datedTask}${taskId}/`
+    )
+}
