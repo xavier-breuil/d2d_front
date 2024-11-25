@@ -41,3 +41,5 @@ export const defaultMot = {
     every_last_day_of_month: false,
     every_year:[]
 }
+
+export const acceptedDeleteStatus = [200, 204];

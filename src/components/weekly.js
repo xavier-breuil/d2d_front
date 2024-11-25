@@ -9,7 +9,7 @@ import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 
 import {getWeekTask, deleteDatedTask} from '../api/backend_api';
-import {weekDays} from '../utils/constants';
+import {acceptedDeleteStatus, weekDays} from '../utils/constants';
 import {getNextWeek, getPreviousWeek} from '../utils/functions';
 import ChangeWeekButton from './buttons/changeWeekButton'
 
@@ -57,9 +57,8 @@ function Weekly({weekNum, currentYear}) {
         Promise.all(deletePromises)
             .then(responses => {
                 const statusList = responses.map(resp =>resp.status);
-                if (statusList.every(status => [200,204].includes(status))) {
+                if (statusList.every(status => acceptedDeleteStatus.includes(status))) {
                     setDatedTasks(datedTasks.filter(task => !task.toDelete));
-
                 } else {
                     console.log(`error: deleting tasks [${toDelete.map(task => task.id)}] returned unexpected status code: ${statusList}`);
                     setShowErrorAlert(true);
