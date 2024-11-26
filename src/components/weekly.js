@@ -7,11 +7,11 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 import {getWeekTask, deleteDatedTask} from '../api/backend_api';
 import {acceptedDeleteStatus, weekDays} from '../utils/constants';
 import {getNextWeek, getPreviousWeek} from '../utils/functions';
-import ChangeWeekButton from './buttons/changeWeekButton'
 
 function Weekly({weekNum, currentYear}) {
     // define state
@@ -84,17 +84,34 @@ function Weekly({weekNum, currentYear}) {
         setDatedTasks(newChecks);
     }
 
+    const print = () => {
+        console.log('print');
+    }
+
     return (
-        <Container>
+        <Container fluid>
             {showErrorAlert &&
                 <Alert variant="danger" onClose={() => setShowErrorAlert(false)} dismissible>Erreur lors de la suppression des tâches</Alert>
             }
             <Row>
-                <ChangeWeekButton buttonText="semaine précédente" handleClick={goToPreviousWeek} />
-                <Col className="fw-bold fs-5 col-8">semaine {weekNumber}</Col>
-                <ChangeWeekButton buttonText="semaine suivante" handleClick={goToNextWeek} />
+                <Col xs={{span: 1, offset: 4}}>
+                    <Button onClick={goToPreviousWeek}>
+                        <i className="bi bi-arrow-left" />
+                    </Button>
+                </Col>
+                <Col className="fw-bold fs-5 col-2">semaine {weekNumber}</Col>
+                <Col className="col-1">
+                    <Button onClick={goToNextWeek}>
+                        <i className="bi bi-arrow-right" />
+                    </Button>
+                </Col>
+                <Col sm={{span: 1, offset: 3}} className="p-0 text-end">
+                    <Button onClick={print} className="rounded-0">
+                        <i className="bi bi-printer" />
+                    </Button>
+                </Col>
             </Row>
-            <Row>
+            <Row className="mx-5">
                 <Col>
                     {weekDays.map(day => {
                         return <div key={day.weekdayNumber}>
@@ -106,7 +123,7 @@ function Weekly({weekNum, currentYear}) {
                                 ).map(
                                     t=> {
                                         return (
-                                            <Row key={t.id} className="ps-3">
+                                            <Row key={t.id}>
                                                 <Col className="text-start">
                                                     <Form.Check
                                                     type="checkbox"

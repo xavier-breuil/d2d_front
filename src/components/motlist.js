@@ -7,7 +7,7 @@ import Tab from 'react-bootstrap/Tab';
 import Button from 'react-bootstrap/Button';
 import Stack from 'react-bootstrap/Stack';
 import Alert from 'react-bootstrap/Alert';
-import "bootstrap-icons/font/bootstrap-icons.css"
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 import {getMots, deleteMot} from '../api/backend_api';
 import MotForm from './motform';
