@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import moment from 'moment';
 import Container from 'react-bootstrap/Container';
@@ -12,6 +12,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import {getWeekTask, deleteDatedTask} from '../api/backend_api';
 import {acceptedDeleteStatus, weekDays} from '../utils/constants';
 import {getNextWeek, getPreviousWeek} from '../utils/functions';
+import { useReactToPrint } from 'react-to-print';
 
 function Weekly({weekNum, currentYear}) {
     // define state
@@ -22,6 +23,11 @@ function Weekly({weekNum, currentYear}) {
     const nextWeek = getNextWeek(weekNumber, year);
     const previousWeek = getPreviousWeek(weekNumber, year);
     const [showErrorAlert, setShowErrorAlert] = useState(false);
+    const contentToPrintRef = useRef(null);
+    const print = useReactToPrint({
+        contentRef: contentToPrintRef,
+        documentTitle: `week_${weekNumber}_planning`,
+    })
 
     useEffect(() => {
         getWeekTask(weekNumber, year)
@@ -84,12 +90,8 @@ function Weekly({weekNum, currentYear}) {
         setDatedTasks(newChecks);
     }
 
-    const print = () => {
-        console.log('print');
-    }
-
     return (
-        <Container fluid>
+        <Container fluid ref={contentToPrintRef}>
             {showErrorAlert &&
                 <Alert variant="danger" onClose={() => setShowErrorAlert(false)} dismissible>Erreur lors de la suppression des tâches</Alert>
             }
@@ -99,7 +101,7 @@ function Weekly({weekNum, currentYear}) {
                         <i className="bi bi-arrow-left" />
                     </Button>
                 </Col>
-                <Col className="fw-bold fs-5 col-2">semaine {weekNumber}</Col>
+                <Col className="fw-bold fs-5 col-2">Sem {weekNumber}</Col>
                 <Col className="col-1">
                     <Button onClick={goToNextWeek}>
                         <i className="bi bi-arrow-right" />
