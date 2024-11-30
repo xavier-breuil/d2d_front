@@ -10,7 +10,7 @@ import { createTask } from '../api/backend_api';
 
 const Task = () => {
     const [taskType, setTaskType] = useState('date');
-    const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:''}]);
+    const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:'', done: false}]);
     // const [taskName, setTaskName] = useState('');
     const [taskWeek, setTaskWeek] = useState('');
     const [taskYear, setTaskYear] = useState('');
@@ -52,12 +52,31 @@ const Task = () => {
         setDateTaskForm(newTasks);
     }
 
+    const validateDateTaskNames = () => {
+        return dateTaskForm.every(task => {
+            return !emptyString(task.name);
+        })
+    }
+
+    const validateDateTaskDates = () => {
+        return dateTaskForm.every(task => {
+            return isDate(task.date);
+        })
+    }
+
     const validateAndPost = (event) => {
         event.preventDefault();
-        console.log(dateTaskForm);
-
+        // TODO: handle case of week task
         // Check for errors in form
         const fieldErrors = [];
+        if (taskType === 'date') {
+            if (!validateDateTaskNames()) {
+                fieldErrors.push('le nom d\'au moins une tache est non valide');
+            }
+            if (!validateDateTaskDates()) {
+                fieldErrors.push('La date d\'au moins une tache est incorrecte');
+            }
+        }
         // if (emptyString(taskName)) {
         //     fieldErrors.push('nom de la tache non valide');
         // }
@@ -69,12 +88,32 @@ const Task = () => {
         // if (taskType === 'date' && !isDate(taskDate)) {
         //     fieldErrors.push('date incorrecte');
         // }
-        // if (fieldErrors.length > 0) {
-        //     setFormError(`Erreur sur le formulaire: ${fieldErrors.join(', ')}`)
-        //     return;
-        // } else {
-        //     setFormError('');
-        // }
+        if (fieldErrors.length > 0) {
+            setFormError(`Erreur sur le formulaire: ${fieldErrors.join(', ')}`)
+            return;
+        } else {
+            setFormError('');
+        }
+
+        if (taskType === 'date') {
+            const dateTaskPromises = dateTaskForm.map(data => {
+                return createTask('date', data);
+            });
+            Promise.all(dateTaskPromises)
+                .then(
+                    responses => {
+                        if (responses.every(resp => resp.status === 201)) {
+                            setCreateSuccess(true);
+                            resetDateForm();
+                        } else {
+                            setFormError(`Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
+                        }
+                    }
+                ).catch(error => {
+                    console.log(error);
+                    setFormError(`Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
+                })
+        }
 
         // const data = {
         //     name: taskName,
@@ -101,11 +140,13 @@ const Task = () => {
         // })
     }
 
+    const resetDateForm = ()=> {
+        setDateTaskForm([{name:'', date:'', done: false}]);
+    }
+
     const resetForm = ()=> {
-        // setTaskName('');
         setTaskWeek('');
         setTaskYear('');
-        // setTaskDate('');
     }
 
     const keyDown = event => {
@@ -130,7 +171,7 @@ const Task = () => {
                     <Alert variant="danger" onClose={() => setFormError('')} dismissible>{formError}</Alert>
                 }
                 {createSucess &&
-                    <Alert variant="success" onClose={() => setCreateSuccess(false)} dismissible>La tâche a bien été créée</Alert>
+                    <Alert variant="success" onClose={() => setCreateSuccess(false)} dismissible>Les tâches ont bien été créées</Alert>
                 }
                 <Row>
                     <div key="inline-radios" className="my-4 text-start">
