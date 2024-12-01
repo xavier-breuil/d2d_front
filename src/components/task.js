@@ -11,10 +11,7 @@ import { createTask } from '../api/backend_api';
 const Task = () => {
     const [taskType, setTaskType] = useState('date');
     const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:'', done: false}]);
-    // const [taskName, setTaskName] = useState('');
-    const [taskWeek, setTaskWeek] = useState('');
-    const [taskYear, setTaskYear] = useState('');
-    // const [taskDate, setTaskDate] = useState('');
+    const [weekTaskForm, setWeekTaskForm] = useState([{name:'', week:'', year: '', done: false}]);
     const [formError, setFormError] = useState([]);
     const [createSucess, setCreateSuccess] = useState(false);
 
@@ -22,10 +19,10 @@ const Task = () => {
         setTaskType(event.target.value);
     }
 
-    const nameChanged = (event, index) => {
+    const dateNameChanged = (event, index) => {
         const newTasks = dateTaskForm.map((task, i) => {
             if (i === index) {
-                return {date: task.date, name: event.target.value};
+                return {date: task.date, name: event.target.value, done: false};
             } else {
                 return task;
             }
@@ -33,12 +30,37 @@ const Task = () => {
         setDateTaskForm(newTasks);
     }
 
-    const weekChanged = event => {
-        setTaskWeek(event.target.value);
+    const weekNameChanged = (event, index) => {
+        const newTasks = weekTaskForm.map((task, i) => {
+            if (i === index) {
+                return {week: task.week, year: task.year, name: event.target.value, done: false};
+            } else {
+                return task;
+            }
+        })
+        setWeekTaskForm(newTasks);
     }
 
-    const yearChanged = event => {
-        setTaskYear(event.target.value);
+    const weekChanged = (event, index) => {
+        const newTasks = weekTaskForm.map((task, i) => {
+            if (i === index) {
+                return {week: event.target.value, year: task.year, name: task.name, done: false};
+            } else {
+                return task;
+            }
+        })
+        setWeekTaskForm(newTasks);
+    }
+
+    const yearChanged = (event, index) => {
+        const newTasks = weekTaskForm.map((task, i) => {
+            if (i === index) {
+                return {week: task.week, year: event.target.value, name: task.name, done: false};
+            } else {
+                return task;
+            }
+        })
+        setWeekTaskForm(newTasks);
     }
 
     const dateChanged = (event, index) => {
@@ -52,10 +74,17 @@ const Task = () => {
         setDateTaskForm(newTasks);
     }
 
-    const validateDateTaskNames = () => {
-        return dateTaskForm.every(task => {
-            return !emptyString(task.name);
-        })
+    const validateTaskNames = () => {
+        if (taskType === 'date') {
+            return dateTaskForm.every(task => {
+                return !emptyString(task.name);
+            })
+        }
+        if (taskType === 'week') {
+            return weekTaskForm.every(task => {
+                return !emptyString(task.name);
+            })
+        }
     }
 
     const validateDateTaskDates = () => {
@@ -64,30 +93,38 @@ const Task = () => {
         })
     }
 
+    const validateWeekTaskWeekYear = () => {
+        return weekTaskForm.every(task => {
+            return correctWeekYear(task.week, task.year);
+        })
+    }
+
+    const formatWeekData = task => {
+        return {
+            name: task.name,
+            year: task.year,
+            week_number: task.week,
+            done: task.done
+        }
+    }
+
     const validateAndPost = (event) => {
         event.preventDefault();
-        // TODO: handle case of week task
         // Check for errors in form
         const fieldErrors = [];
+        if (!validateTaskNames()) {
+            fieldErrors.push('le nom d\'au moins une tâche est non valide');
+        }
         if (taskType === 'date') {
-            if (!validateDateTaskNames()) {
-                fieldErrors.push('le nom d\'au moins une tache est non valide');
-            }
             if (!validateDateTaskDates()) {
-                fieldErrors.push('La date d\'au moins une tache est incorrecte');
+                fieldErrors.push('La date d\'au moins une tâche est incorrecte');
             }
         }
-        // if (emptyString(taskName)) {
-        //     fieldErrors.push('nom de la tache non valide');
-        // }
-        // if (taskType === 'week') {
-        //     if (!correctWeekYear(taskWeek, taskYear)) {
-        //         fieldErrors.push('semaine ou année incorrecte');
-        //     }
-        // }
-        // if (taskType === 'date' && !isDate(taskDate)) {
-        //     fieldErrors.push('date incorrecte');
-        // }
+        if (taskType === 'week') {
+            if (!validateWeekTaskWeekYear()) {
+                fieldErrors.push('La date d\'au moins une tâche est incorrecte');
+            }
+        }
         if (fieldErrors.length > 0) {
             setFormError(`Erreur sur le formulaire: ${fieldErrors.join(', ')}`)
             return;
@@ -95,73 +132,60 @@ const Task = () => {
             setFormError('');
         }
 
+        // Post data on backend
+        const taskPromises = [];
         if (taskType === 'date') {
-            const dateTaskPromises = dateTaskForm.map(data => {
-                return createTask('date', data);
+            dateTaskForm.map(data => {
+                taskPromises.push(createTask('date', data));
             });
-            Promise.all(dateTaskPromises)
-                .then(
-                    responses => {
-                        if (responses.every(resp => resp.status === 201)) {
-                            setCreateSuccess(true);
-                            resetDateForm();
-                        } else {
-                            setFormError(`Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
-                        }
-                    }
-                ).catch(error => {
-                    console.log(error);
-                    setFormError(`Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
-                })
+        } else if (taskType === 'week') {
+            weekTaskForm.map(data => {
+                taskPromises.push(createTask('week', formatWeekData(data)));
+            });
         }
-
-        // const data = {
-        //     name: taskName,
-        //     done: false
-        // }
-        // if (taskType === 'week') {
-        //     data.week_number = taskWeek;
-        //     data.year = taskYear;
-        // }
-        // if (taskType === 'date') {
-        //     data.date = taskDate;
-        // }
-        // createTask(taskType, data).then(
-        //     response => {
-        //         if (response.status === 201) {
-        //             setCreateSuccess(true);
-        //             resetForm();
-        //         } else {
-        //             setFormError(`Erreur lors de l'envoie des données`);
-        //         }
-        //     }
-        // ).catch(error => {
-        //     setFormError(`Erreur lors de l'envoie des données`);
-        // })
-    }
-
-    const resetDateForm = ()=> {
-        setDateTaskForm([{name:'', date:'', done: false}]);
+        Promise.all(taskPromises)
+            .then(
+                responses => {
+                    if (responses.every(resp => resp.status === 201)) {
+                        setCreateSuccess(true);
+                        resetForm();
+                    } else {
+                        setFormError(`Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
+                    }
+                }
+            ).catch(error => {
+                console.log(error);
+                setFormError(`Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
+            });
     }
 
     const resetForm = ()=> {
-        setTaskWeek('');
-        setTaskYear('');
+        setDateTaskForm([{name:'', date:'', done: false}]);
+        setWeekTaskForm([{name:'', year:'', week: '', done: false}]);
     }
 
     const keyDown = event => {
-        if (taskType === 'date' && event.key === 'Enter') {
+        if (event.key === 'Enter') {
             event.preventDefault();
-            addDateTask();
+            addTask();
         }
     }
 
-    const addDateTask = () => {
-        setDateTaskForm([...dateTaskForm,{name:'', date:''}]);
+    const addTask = () => {
+        if (taskType === 'date') {
+            setDateTaskForm([...dateTaskForm,{name:'', date:'', done: false}]);
+        }
+        if (taskType === 'week') {
+            setWeekTaskForm([...weekTaskForm,{name:'', week:'', year: '', done: false}]);
+        }
     }
 
     const deleteDatedTask = index => {
         setDateTaskForm(dateTaskForm.filter((_, i) => {return i !== index}));
+    }
+
+    const deleteWeekTask = index => {
+        setWeekTaskForm(weekTaskForm.filter((_, i) => {return i !== index}));
     }
 
     return (
@@ -210,10 +234,10 @@ const Task = () => {
                                 <Form.Group as={Col} className="mb-4 text-start" controlId="taskName">
                                     <Form.Label>Nom de la tâche</Form.Label>
                                     <Form.Control
-                                        onChange={event => nameChanged(event, index)}
+                                        onChange={event => dateNameChanged(event, index)}
                                         value={task.name}/>
                                 </Form.Group>
-                                <Form.Group as={Col} className="mb-4 text-start" controlId="taskDelete">
+                                <Form.Group as={Col} className="mb-4 text-start" controlId="datedTaskDelete">
                                     <Button
                                         variant="outline-danger"
                                         onClick={event => deleteDatedTask(index)}>
@@ -224,23 +248,40 @@ const Task = () => {
                         })
                 }
                 {taskType === 'week' &&
-                    <Row>
-                        <Form.Group className="m-4 col-lg-6 text-start" controlId="taskWeek">
-                            <Form.Label>Semaine:</Form.Label>
-                            <Form.Control
-                                type="number"
-                                placeholder="numéro de la semaine (entre 1 et 53)"
-                                onChange={weekChanged}
-                                value={taskWeek}/>
-                        <Form.Label>Année:</Form.Label>
-                            <Form.Control
-                                type="number"
-                                onChange={yearChanged}
-                                value={taskYear}/>
-                        </Form.Group>
-                    </Row>
+                    weekTaskForm.map((task, index) => { return(
+                        <Row key={'week_task_row_' + index} className="align-items-end">
+                                <Form.Group as={Col} className="mb-4 text-start" controlId="taskYear">
+                                    <Form.Label>Année:</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        onChange={event => yearChanged(event, index)}
+                                        value={task.year}/>
+                                </Form.Group>
+                                <Form.Group as={Col} className="mb-4 text-start" controlId="taskWeek">
+                                    <Form.Label>Semaine:</Form.Label>
+                                    <Form.Control
+                                        placeholder="entre 1 et 53"
+                                        type="number"
+                                        onChange={event => weekChanged(event, index)}
+                                        value={task.week}/>
+                                </Form.Group>
+                                <Form.Group as={Col} className="mb-4 text-start" controlId="taskName">
+                                    <Form.Label>Nom de la tâche</Form.Label>
+                                    <Form.Control
+                                        onChange={event => weekNameChanged(event, index)}
+                                        value={task.name}/>
+                                </Form.Group>
+                                <Form.Group as={Col} className="mb-4 text-start" controlId="weekTaskDelete">
+                                    <Button
+                                        variant="outline-danger"
+                                        onClick={event => deleteWeekTask(index)}>
+                                            <i className="bi bi-trash"></i>
+                                        </Button>
+                                </Form.Group>
+                            </Row>)
+                    })
                 }
-                <Button onClick={addDateTask} className="mx-2">
+                <Button onClick={addTask} className="mx-2">
                     <i className="bi bi-plus-lg"></i>
                 </Button>
                 <Button type="submit" className="mx-2">
