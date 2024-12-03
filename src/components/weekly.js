@@ -9,7 +9,7 @@ import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-import {getWeekTask, deleteDatedTask} from '../api/backend_api';
+import {getWeekTask, deleteDatedTask, deleteWeekTask} from '../api/backend_api';
 import {acceptedDeleteStatus, weekDays} from '../utils/constants';
 import {getNextWeek, getPreviousWeek} from '../utils/functions';
 import { useReactToPrint } from 'react-to-print';
@@ -32,14 +32,18 @@ function Weekly({weekNum, currentYear}) {
     useEffect(() => {
         getWeekTask(weekNumber, year)
             .then(tasks => {
-                setWeekTasks(tasks.weeklyTask);
-                const datedTasks = tasks.datedTask;
+                const tempWeekTasks = tasks.weeklyTask;
+                tempWeekTasks.map(task => {
+                    task.toDelete = false;
+                })
+                setWeekTasks(tempWeekTasks);
+                const tempDatedTasks = tasks.datedTask;
                 // eslint-disable-next-line
-                datedTasks.map(task => {
+                tempDatedTasks.map(task => {
                     task.dayOfWeek = moment(task.date).isoWeekday();
                     task.toDelete = false;
                 })
-                setDatedTasks(datedTasks);
+                setDatedTasks(tempDatedTasks);
             })
     },
 
@@ -57,16 +61,19 @@ function Weekly({weekNum, currentYear}) {
         setYear(nextWeek.year);
     }
 
-    const performDeleteDatedTasks = _ => {
-        const toDelete = datedTasks.filter(t => t.toDelete);
-        const deletePromises = toDelete.map(task => deleteDatedTask(task.id));
-        Promise.all(deletePromises)
+    const performDeleteTasks = _ => {
+        const datedToDelete = datedTasks.filter(t => t.toDelete);
+        const datedDeletePromises = datedToDelete.map(task => deleteDatedTask(task.id));
+        const weekToDelete = weekTasks.filter(t => t.toDelete);
+        const weekDeletePromises = weekToDelete.map(task => deleteWeekTask(task.id));
+        Promise.all([...datedDeletePromises,...weekDeletePromises])
             .then(responses => {
                 const statusList = responses.map(resp =>resp.status);
                 if (statusList.every(status => acceptedDeleteStatus.includes(status))) {
                     setDatedTasks(datedTasks.filter(task => !task.toDelete));
+                    setWeekTasks(weekTasks.filter(task => !task.toDelete));
                 } else {
-                    console.log(`error: deleting tasks [${toDelete.map(task => task.id)}] returned unexpected status code: ${statusList}`);
+                    console.log(`error: deleting tasks [${[...datedToDelete, ...weekToDelete].map(task => task.id)}] returned unexpected status code: ${statusList}`);
                     setShowErrorAlert(true);
                 }
             })
@@ -88,6 +95,20 @@ function Weekly({weekNum, currentYear}) {
             }
         });
         setDatedTasks(newChecks);
+    }
+
+    const setWeekToDelete = (event, id) => {
+        // recommanded way by react: https://react.dev/learn/updating-arrays-in-state
+        const newChecks = weekTasks.map(task => {
+            if (task.id !== id ) {
+                return task;
+            }
+            return {
+                ...task,
+                toDelete: !task.toDelete
+            }
+        });
+        setWeekTasks(newChecks);
     }
 
     return (
@@ -141,18 +162,27 @@ function Weekly({weekNum, currentYear}) {
                             }
                         </div>
                     })}
-                    <Row>
-                        <Col className="text-start">
-                            <Button variant="danger" onClick={performDeleteDatedTasks}>supprimer</Button>
-                        </Col>
-                    </Row>
                 </Col>
                 <Col>
                     {weekTasks.map(wt => {
                         return (
-                            <div key={wt.id}>{wt.name}</div>
+                            <Row key={wt.id}>
+                                <Col className="text-start">
+                                    <Form.Check
+                                    type="checkbox"
+                                    id={"check_week_" + wt.id}
+                                    label={wt.name}
+                                    onChange={event => setWeekToDelete(event, wt.id)}
+                                    checked={wt.toDelete} />
+                                </Col>
+                            </Row>
                         )
                     })}
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <Button variant="danger" onClick={performDeleteTasks}>supprimer</Button>
                 </Col>
             </Row>
         </Container>

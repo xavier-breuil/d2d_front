@@ -64,6 +64,12 @@ export const deleteDatedTask = taskId => {
     )
 }
 
+export const deleteWeekTask = taskId => {
+    return axios.delete(
+        `${backendBaseUrl}${backendUrls.weekTask}${taskId}/`
+    )
+}
+
 export const deleteMot = motId => {
     return axios.delete(
         `${backendBaseUrl}${backendUrls.mot}${motId}/`
