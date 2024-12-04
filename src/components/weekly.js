@@ -9,7 +9,7 @@ import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-import {getWeekTask, deleteDatedTask, deleteWeekTask} from '../api/backend_api';
+import {getWeekTask, deleteDatedTask, deleteWeekTask, markAsDoneTask} from '../api/backend_api';
 import {acceptedDeleteStatus, weekDays} from '../utils/constants';
 import {getNextWeek, getPreviousWeek} from '../utils/functions';
 import { useReactToPrint } from 'react-to-print';
@@ -34,14 +34,14 @@ function Weekly({weekNum, currentYear}) {
             .then(tasks => {
                 const tempWeekTasks = tasks.weeklyTask;
                 tempWeekTasks.map(task => {
-                    task.toDelete = false;
+                    task.checked = false;
                 })
                 setWeekTasks(tempWeekTasks);
                 const tempDatedTasks = tasks.datedTask;
                 // eslint-disable-next-line
                 tempDatedTasks.map(task => {
                     task.dayOfWeek = moment(task.date).isoWeekday();
-                    task.toDelete = false;
+                    task.checked = false;
                 })
                 setDatedTasks(tempDatedTasks);
             })
@@ -62,16 +62,16 @@ function Weekly({weekNum, currentYear}) {
     }
 
     const performDeleteTasks = _ => {
-        const datedToDelete = datedTasks.filter(t => t.toDelete);
+        const datedToDelete = datedTasks.filter(t => t.checked);
         const datedDeletePromises = datedToDelete.map(task => deleteDatedTask(task.id));
-        const weekToDelete = weekTasks.filter(t => t.toDelete);
+        const weekToDelete = weekTasks.filter(t => t.checked);
         const weekDeletePromises = weekToDelete.map(task => deleteWeekTask(task.id));
         Promise.all([...datedDeletePromises,...weekDeletePromises])
             .then(responses => {
                 const statusList = responses.map(resp =>resp.status);
                 if (statusList.every(status => acceptedDeleteStatus.includes(status))) {
-                    setDatedTasks(datedTasks.filter(task => !task.toDelete));
-                    setWeekTasks(weekTasks.filter(task => !task.toDelete));
+                    setDatedTasks(datedTasks.filter(task => !task.checked));
+                    setWeekTasks(weekTasks.filter(task => !task.checked));
                 } else {
                     console.log(`error: deleting tasks [${[...datedToDelete, ...weekToDelete].map(task => task.id)}] returned unexpected status code: ${statusList}`);
                     setShowErrorAlert(true);
@@ -83,7 +83,7 @@ function Weekly({weekNum, currentYear}) {
             })
     }
 
-    const setToDelete = (event, id) => {
+    const setDatedChecked = (event, id) => {
         // recommanded way by react: https://react.dev/learn/updating-arrays-in-state
         const newChecks = datedTasks.map(task => {
             if (task.id !== id ) {
@@ -91,13 +91,13 @@ function Weekly({weekNum, currentYear}) {
             }
             return {
                 ...task,
-                toDelete: !task.toDelete
+                checked: !task.checked
             }
         });
         setDatedTasks(newChecks);
     }
 
-    const setWeekToDelete = (event, id) => {
+    const setWeekChecked = (event, id) => {
         // recommanded way by react: https://react.dev/learn/updating-arrays-in-state
         const newChecks = weekTasks.map(task => {
             if (task.id !== id ) {
@@ -105,10 +105,61 @@ function Weekly({weekNum, currentYear}) {
             }
             return {
                 ...task,
-                toDelete: !task.toDelete
+                checked: !task.checked
             }
         });
         setWeekTasks(newChecks);
+    }
+
+    const updateDoneStatus = (taskDone) => {
+        const weekDone = weekTasks.map(task => {
+            if (!task.checked) {
+                return task;
+            }
+            return {
+                ...task,
+                done: taskDone,
+                checked: false
+            }
+        });
+        setWeekTasks(weekDone);
+        const datedDone = datedTasks.map(task => {
+            if (!task.checked) {
+                return task;
+            }
+            return {
+                ...task,
+                done: taskDone,
+                checked: false
+            }
+        });
+        setDatedTasks(datedDone);
+    }
+
+    /**
+     * Update checked task to status done on backend, then uncheck all boxes
+     *
+     * @param {*} done: true to mark task as done, false otherwise
+     */
+    const markAsDone = taskDone => {
+        const datedDone = datedTasks.filter(t => t.checked);
+        const datedDonePromises = datedDone.map(task => markAsDoneTask(task.id, taskDone, 'date'));
+        const weekDone = weekTasks.filter(t => t.checked);
+        const weekDonePromises = weekDone.map(task => markAsDoneTask(task.id, taskDone, 'week'));
+        Promise.all([...datedDonePromises,...weekDonePromises])
+            .then(responses => {
+                const statusList = responses.map(resp =>resp.status);
+                if (statusList.every(status => acceptedDeleteStatus.includes(status))) {
+                    updateDoneStatus(taskDone);
+                } else {
+                    console.log(`error: marking tasks as done [${[...datedDone, ...weekDone].map(task => task.id)}] returned unexpected status code: ${statusList}`);
+                    setShowErrorAlert(true);
+                }
+            })
+            .catch(error => {
+                setShowErrorAlert(true);
+                console.log(error);
+            })
     }
 
     return (
@@ -151,9 +202,9 @@ function Weekly({weekNum, currentYear}) {
                                                     <Form.Check
                                                     type="checkbox"
                                                     id={"check_" + t.id}
-                                                    label={t.name}
-                                                    onChange={event => setToDelete(event, t.id)}
-                                                    checked={t.toDelete} />
+                                                    label={(t.done ? <del>{t.name}</del> : t.name)}
+                                                    onChange={event => setDatedChecked(event, t.id)}
+                                                    checked={t.checked} />
                                                 </Col>
                                             </Row>
                                         )
@@ -171,9 +222,9 @@ function Weekly({weekNum, currentYear}) {
                                     <Form.Check
                                     type="checkbox"
                                     id={"check_week_" + wt.id}
-                                    label={wt.name}
-                                    onChange={event => setWeekToDelete(event, wt.id)}
-                                    checked={wt.toDelete} />
+                                    label={(wt.done ? <del>{wt.name}</del> : wt.name)}
+                                    onChange={event => setWeekChecked(event, wt.id)}
+                                    checked={wt.checked} />
                                 </Col>
                             </Row>
                         )
@@ -181,7 +232,12 @@ function Weekly({weekNum, currentYear}) {
                 </Col>
             </Row>
             <Row>
-                <Col>
+                <Col className="text-end">
+                    <Button variant="success" onClick={_ => markAsDone(true)}>
+                        <i className="bi bi-check"/>
+                    </Button>
+                </Col>
+                <Col className="text-start">
                     <Button variant="danger" onClick={performDeleteTasks}>supprimer</Button>
                 </Col>
             </Row>

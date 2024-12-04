@@ -75,3 +75,16 @@ export const deleteMot = motId => {
         `${backendBaseUrl}${backendUrls.mot}${motId}/`
     )
 }
+
+export const markAsDoneTask = (taskId, taskDone, taskType) => {
+    if (taskType === 'date') {
+        return axios.patch(
+            `${backendBaseUrl}${backendUrls.datedTask}${taskId}/`, {done: taskDone}
+        )
+    }
+    if (taskType === 'week') {
+        return axios.patch(
+            `${backendBaseUrl}${backendUrls.weekTask}${taskId}/`, {done: taskDone}
+        )
+    }
+}
