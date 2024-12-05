@@ -232,9 +232,14 @@ function Weekly({weekNum, currentYear}) {
                 </Col>
             </Row>
             <Row>
-                <Col className="text-end">
+                <Col sm={{span: 1, offset: 4}} className="text-end">
                     <Button variant="success" onClick={_ => markAsDone(true)}>
                         <i className="bi bi-check"/>
+                    </Button>
+                </Col>
+                <Col className="col-1">
+                    <Button variant="warning" onClick={_ => markAsDone(false)}>
+                        <i className="bi bi-x"/>
                     </Button>
                 </Col>
                 <Col className="text-start">
