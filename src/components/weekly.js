@@ -23,7 +23,10 @@ function Weekly({weekNum, currentYear}) {
     const [year, setYear] = useState(currentYear);
     const nextWeek = getNextWeek(weekNumber, year);
     const previousWeek = getPreviousWeek(weekNumber, year);
-    const [showErrorAlert, setShowErrorAlert] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertType, setAlertType] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+
     const contentToPrintRef = useRef(null);
     const print = useReactToPrint({
         contentRef: contentToPrintRef,
@@ -82,14 +85,15 @@ function Weekly({weekNum, currentYear}) {
                 if (statusList.every(status => acceptedDeleteStatus.includes(status))) {
                     setDatedTasks(datedTasks.filter(task => !task.checked));
                     setWeekTasks(weekTasks.filter(task => !task.checked));
-                    setLateTasks(lateTasks.filter(task => !task.checked))
+                    setLateTasks(lateTasks.filter(task => !task.checked));
+                    displayAlert(true, 'success', 'Les tâches ont bien été supprimées');
                 } else {
                     console.log(`error: deleting tasks [${[...datedToDelete, ...weekToDelete].map(task => task.id)}] returned unexpected status code: ${statusList}`);
-                    setShowErrorAlert(true);
+                    displayAlert(true, 'danger', 'Erreur lors de la suppression des tâches');
                 }
             })
             .catch(error => {
-                setShowErrorAlert(true);
+                displayAlert(true, 'danger', 'Erreur lors de la suppression des tâches');
                 console.log(error);
             })
     }
@@ -193,19 +197,28 @@ function Weekly({weekNum, currentYear}) {
                     updateDoneStatus(taskDone);
                 } else {
                     console.log(`error: marking tasks as done [${[...datedDone, ...weekDone].map(task => task.id)}] returned unexpected status code: ${statusList}`);
-                    setShowErrorAlert(true);
+                    displayAlert(true, 'danger', 'Erreur lors de la modification des tâches');
                 }
             })
             .catch(error => {
-                setShowErrorAlert(true);
+                displayAlert(true, 'danger', 'Erreur lors de la modification des tâches');
                 console.log(error);
             })
     }
 
+    const displayAlert = (show, type, message) => {
+        setShowAlert(show);
+        setAlertMessage(message);
+        setAlertType(type);
+        window.scrollTo(0,0);
+    }
+
     return (
-        <Container fluid ref={contentToPrintRef}>
-            {showErrorAlert &&
-                <Alert variant="danger" onClose={() => setShowErrorAlert(false)} dismissible>Erreur lors de la suppression des tâches</Alert>
+        <Container fluid ref={contentToPrintRef} className="px-0">
+            {showAlert &&
+                <Alert variant={alertType} onClose={() => setShowAlert(false)} dismissible>
+                    {alertMessage}
+                </Alert>
             }
             <Row>
                 <Col xs={{span: 1, offset: 4}}>

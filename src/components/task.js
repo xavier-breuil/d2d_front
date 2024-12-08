@@ -12,8 +12,9 @@ const Task = () => {
     const [taskType, setTaskType] = useState('date');
     const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:'', done: false}]);
     const [weekTaskForm, setWeekTaskForm] = useState([{name:'', week:'', year: '', done: false}]);
-    const [formError, setFormError] = useState([]);
-    const [createSucess, setCreateSuccess] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertType, setAlertType] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
 
     const typeChanged = event => {
         setTaskType(event.target.value);
@@ -126,10 +127,10 @@ const Task = () => {
             }
         }
         if (fieldErrors.length > 0) {
-            setFormError(`Erreur sur le formulaire: ${fieldErrors.join(', ')}`)
+            displayAlert(true, 'danger', `Erreur sur le formulaire: ${fieldErrors.join(', ')}`);
             return;
         } else {
-            setFormError('');
+            displayAlert(false, 'danger', '');
         }
 
         // Post data on backend
@@ -147,15 +148,15 @@ const Task = () => {
             .then(
                 responses => {
                     if (responses.every(resp => resp.status === 201)) {
-                        setCreateSuccess(true);
+                        displayAlert(true, 'success', 'Les tâches ont bien été créées');
                         resetForm();
                     } else {
-                        setFormError(`Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
+                        displayAlert(true, 'danger', `Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
                     }
                 }
             ).catch(error => {
                 console.log(error);
-                setFormError(`Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
+                displayAlert(true, 'danger', `Erreur lors de l'envoie des données, certaines taches n'ont peut être pas été crées`);
             });
     }
 
@@ -188,15 +189,19 @@ const Task = () => {
         setWeekTaskForm(weekTaskForm.filter((_, i) => {return i !== index}));
     }
 
+    const displayAlert = (show, type, message) => {
+        setShowAlert(show);
+        setAlertMessage(message);
+        setAlertType(type);
+        window.scrollTo(0,0);
+    }
+
     return (
-        <div className="ms-4">
-            <Form onSubmit={validateAndPost} onKeyDown={keyDown}>
-                {formError.length > 0 &&
-                    <Alert variant="danger" onClose={() => setFormError('')} dismissible>{formError}</Alert>
-                }
-                {createSucess &&
-                    <Alert variant="success" onClose={() => setCreateSuccess(false)} dismissible>Les tâches ont bien été créées</Alert>
-                }
+        <div>
+            {showAlert &&
+                <Alert variant={alertType} onClose={() => setShowAlert(false)} dismissible>{alertMessage}</Alert>
+            }
+            <Form className="ms-4" onSubmit={validateAndPost} onKeyDown={keyDown}>
                 <Row>
                     <div key="inline-radios" className="my-4 text-start">
                         <Form.Check
@@ -288,7 +293,7 @@ const Task = () => {
                     Créer
                 </Button>
             </Form>
-            <div className="text-start">*: Vous pouvez utiliser [Entrer] depuis un champ du formulaire pour ajouter une nouvelle tâche</div>
+            <div className="ms-4 text-start">*: Vous pouvez utiliser [Entrer] depuis un champ du formulaire pour ajouter une nouvelle tâche</div>
         </div>
         )
 }

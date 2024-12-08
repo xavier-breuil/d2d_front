@@ -18,7 +18,9 @@ const MotList = () => {
     const [actMot, setMot] = useState(defaultMot);
     const [addedMot, setAddedMot] = useState(0);
     const [addButtonDisabled, setAddButtonDisabled] = useState(false);
-    const [showErrorAlert, setShowErrorAlert] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertType, setAlertType] = useState('');
 
     useEffect(() => {
         getMots()
@@ -68,13 +70,20 @@ const MotList = () => {
                     setMotList(motList.filter(mot => mot.id !== motId));
                 } else {
                     console.log(`error in status code deleteing mot ${motId}`);
-                    setShowErrorAlert(true);
+                    displayAlert(true, 'danger', 'Erreur lors de la suppression de la récurrence');
                 }
             })
             .catch(error => {
-                setShowErrorAlert(true);
+                displayAlert(true, 'danger', 'Erreur lors de la suppression de la récurrence');
                 console.log(error);
             })
+    }
+
+    const displayAlert = (show, type, alertMessage) => {
+        setShowAlert(show);
+        setAlertMessage(alertMessage);
+        setAlertType(type);
+        window.scrollTo(0,0);
     }
 
     const scrollableColumn = {overflow: 'auto', maxHeight: '100%'};
@@ -82,9 +91,9 @@ const MotList = () => {
     return (
         <Tab.Container>
             <Row style={{height: '100vh'}}>
-            {showErrorAlert &&
-                <Alert variant="danger" onClose={() => setShowErrorAlert(false)} dismissible>Erreur lors de la suppression de la récurrence</Alert>
-            }
+                {showAlert &&
+                    <Alert variant={alertType} onClose={() => setShowAlert(false)} dismissible>{alertMessage}</Alert>
+                }
                 <Col sm={4} style={scrollableColumn}>
                     <ListGroup>
                         <Button
@@ -112,7 +121,9 @@ const MotList = () => {
                         <MotForm
                         mot={actMot}
                         parentMotNameChanged={nameChanged}
-                        setAddButtonDisabled={setAddButtonDisabled}/>
+                        setAddButtonDisabled={setAddButtonDisabled}
+                        displayAlert={displayAlert}
+                        />
                     </Tab.Content>
                 </Col>
             </Row>

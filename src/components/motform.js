@@ -5,14 +5,13 @@ import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
-import Alert from 'react-bootstrap/Alert';
 
 import {weekDays} from '../utils/constants';
 import {emptyString, isDate} from '../utils/functions';
 import {updateMot, createMot} from '../api/backend_api';
 import YearlessDatePicker from './yearlessDatePicker';
 
-const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled}) => {
+const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}) => {
     const [motName, setMotName] = useState(mot.name);
     const [taskName, setTaskName] = useState(mot.task_name);
     const [startDate, setStartDate] = useState(mot.start_date);
@@ -25,8 +24,6 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled}) => {
     const [everyYear, setEveryYear] = useState(mot.every_year);
     // id 0f 0 indicates creation when save, otherwise, update.
     const [motId, setMotId] = useState(mot.id || 0);
-    const [formError, setFormError] = useState([]);
-    const [showSucessAlert, setShowSuccessAlert] = useState(false);
 
     useEffect(() => {
         setMotName(mot.name);
@@ -183,10 +180,10 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled}) => {
             fieldErrors.push('exactement un des champs * doit être informé');
         }
         if (fieldErrors.length > 0) {
-            setFormError(`Erreur sur le formulaire: ${fieldErrors.join(', ')}`)
+            displayAlert(true, 'danger', `Erreur sur le formulaire: ${fieldErrors.join(', ')}`);
             return;
         } else {
-            setFormError('');
+            displayAlert(false, 'danger', '');
         }
         if (motId > 0) {
             performUpdate();
@@ -214,11 +211,11 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled}) => {
         const data = getFormData();
         updateMot(motId, data)
             .then(_ => {
-                setShowSuccessAlert(true);
+                displayAlert(true, 'success', 'La récurrence a été enregistrée');
             })
             .catch(error => {
                 console.log(error);
-                setFormError('Erreur lors de la modification de la récurrence')
+                displayAlert(true, 'danger', 'Erreur lors de la modification de la récurrence');
             })
 
     }
@@ -227,23 +224,17 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled}) => {
         const data = getFormData();
         createMot(data)
             .then(_ => {
-                setShowSuccessAlert(true);
+                displayAlert(true, 'success', 'La récurrence a été enregistrée');
                 setAddButtonDisabled(false);
             })
             .catch(error => {
                 console.log(error);
-                setFormError('Erreur lors de la crétion de la récurrence')
+                displayAlert(true, 'danger', 'Erreur lors de la crétion de la récurrence');
             })
     }
 
     return (
         <Form onSubmit={validateAndPost}>
-            {showSucessAlert &&
-                <Alert variant="success" onClose={() => setShowSuccessAlert(false)} dismissible>La récurrence a été enregistrée</Alert>
-            }
-            {formError.length > 0 &&
-                <Alert variant="danger" onClose={() => setFormError('')} dismissible>{formError}</Alert>
-            }
             <Form.Group className="m-4 col-lg-6 text-start" controlId="motName">
                 <Form.Label>Nom de la récurrence</Form.Label>
                 <Form.Control onChange={motNameChanged} value={motName}/>
