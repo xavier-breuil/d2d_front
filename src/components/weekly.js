@@ -298,7 +298,7 @@ function Weekly({weekNum, currentYear}) {
                                     type="checkbox"
                                     id={"check_late_" + lt.id}
                                     label={(lt.done ? <del>{lt.name}  <span className="fw-lighter">{' (' + lt.week + '/' + lt.year + ')'}</span></del> : <div>{lt.name} <span className="fw-lighter">{' (W ' + lt.week + '/' + lt.year + ')'}</span></div>)}
-                                    onChange={event => setLateChecked(event, lt.id)}
+                                    onChange={event => setLateChecked(event, lt.id, lt.type)}
                                     checked={lt.checked} />
                                 </Col>
                             </Row>
