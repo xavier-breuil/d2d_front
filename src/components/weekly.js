@@ -18,6 +18,7 @@ function Weekly({weekNum, currentYear}) {
     // define state
     const [weekTasks, setWeekTasks] = useState([]);
     const [datedTasks, setDatedTasks] = useState([]);
+    const [lateTasks, setLateTasks] = useState([]);
     const [weekNumber, setWeekNumber] = useState(weekNum);
     const [year, setYear] = useState(currentYear);
     const nextWeek = getNextWeek(weekNumber, year);
@@ -35,15 +36,20 @@ function Weekly({weekNum, currentYear}) {
                 const tempWeekTasks = tasks.weeklyTask;
                 tempWeekTasks.map(task => {
                     task.checked = false;
-                })
+                });
                 setWeekTasks(tempWeekTasks);
                 const tempDatedTasks = tasks.datedTask;
                 // eslint-disable-next-line
                 tempDatedTasks.map(task => {
                     task.dayOfWeek = moment(task.date).isoWeekday();
                     task.checked = false;
-                })
+                });
                 setDatedTasks(tempDatedTasks);
+                const tempLateTasks = tasks.lateTask;
+                tempLateTasks.map(task => {
+                    task.checked = false;
+                });
+                setLateTasks(tempLateTasks);
             })
     },
 
@@ -62,9 +68,13 @@ function Weekly({weekNum, currentYear}) {
     }
 
     const performDeleteTasks = _ => {
-        const datedToDelete = datedTasks.filter(t => t.checked);
+        const datedToDelete = [
+            ...datedTasks.filter(t => t.checked),
+            ...lateTasks.filter(t => t.checked && t.type === 'date')];
         const datedDeletePromises = datedToDelete.map(task => deleteDatedTask(task.id));
-        const weekToDelete = weekTasks.filter(t => t.checked);
+        const weekToDelete = [
+            ...weekTasks.filter(t => t.checked),
+            ...lateTasks.filter(t => t.checked && t.type === 'week')];
         const weekDeletePromises = weekToDelete.map(task => deleteWeekTask(task.id));
         Promise.all([...datedDeletePromises,...weekDeletePromises])
             .then(responses => {
@@ -72,6 +82,7 @@ function Weekly({weekNum, currentYear}) {
                 if (statusList.every(status => acceptedDeleteStatus.includes(status))) {
                     setDatedTasks(datedTasks.filter(task => !task.checked));
                     setWeekTasks(weekTasks.filter(task => !task.checked));
+                    setLateTasks(lateTasks.filter(task => !task.checked))
                 } else {
                     console.log(`error: deleting tasks [${[...datedToDelete, ...weekToDelete].map(task => task.id)}] returned unexpected status code: ${statusList}`);
                     setShowErrorAlert(true);
@@ -111,6 +122,20 @@ function Weekly({weekNum, currentYear}) {
         setWeekTasks(newChecks);
     }
 
+    const setLateChecked = (event, id, taskType) => {
+        // recommanded way by react: https://react.dev/learn/updating-arrays-in-state
+        const newChecks = lateTasks.map(task => {
+            if (task.id !== id || task.type !== taskType) {
+                return task;
+            }
+            return {
+                ...task,
+                checked: !task.checked
+            }
+        });
+        setLateTasks(newChecks);
+    }
+
     const updateDoneStatus = (taskDone) => {
         const weekDone = weekTasks.map(task => {
             if (!task.checked) {
@@ -134,6 +159,17 @@ function Weekly({weekNum, currentYear}) {
             }
         });
         setDatedTasks(datedDone);
+        const lateDone = lateTasks.map(task => {
+            if (!task.checked) {
+                return task;
+            }
+            return {
+                ...task,
+                done: taskDone,
+                checked: false
+            }
+        });
+        setLateTasks(lateDone);
     }
 
     /**
@@ -142,9 +178,13 @@ function Weekly({weekNum, currentYear}) {
      * @param {*} done: true to mark task as done, false otherwise
      */
     const markAsDone = taskDone => {
-        const datedDone = datedTasks.filter(t => t.checked);
+        const datedDone = [
+            ...datedTasks.filter(t => t.checked),
+            ...lateTasks.filter( t => t.checked && t.type === 'date')];
         const datedDonePromises = datedDone.map(task => markAsDoneTask(task.id, taskDone, 'date'));
-        const weekDone = weekTasks.filter(t => t.checked);
+        const weekDone = [
+            ...weekTasks.filter(t => t.checked),
+            ...lateTasks.filter(t => t.checked && t.type === 'week')];
         const weekDonePromises = weekDone.map(task => markAsDoneTask(task.id, taskDone, 'week'));
         Promise.all([...datedDonePromises,...weekDonePromises])
             .then(responses => {
@@ -211,8 +251,10 @@ function Weekly({weekNum, currentYear}) {
                                     }
                                 )
                             }
+                            {/* leave space for manual writting of other task */}
+                            <Row style={{height: 70}}></Row>
                         </div>
-                    })}
+                })}
                 </Col>
                 <Col>
                     {weekTasks.map(wt => {
@@ -229,9 +271,42 @@ function Weekly({weekNum, currentYear}) {
                             </Row>
                         )
                     })}
+                    {/* Leave space to write manually other task for the week */}
+                    <Row style={{height: 400}}></Row>
+                    <Row className="fw-bold mt-3">
+                        Retard
+                    </Row>
+                    {lateTasks.filter(lt => lt.type === 'date').map(lt => {
+                        return (
+                            <Row key={lt.id}>
+                                <Col className="text-start">
+                                    <Form.Check
+                                    type="checkbox"
+                                    id={"check_late_" + lt.id}
+                                    label={(lt.done ? <del>{lt.name}  <span className="fw-lighter">{' (' + lt.date + ')'}</span></del> : <div>{lt.name} <span className="fw-lighter">{' (' + lt.date + ')'}</span></div>)}
+                                    onChange={event => setLateChecked(event, lt.id, lt.type)}
+                                    checked={lt.checked} />
+                                </Col>
+                            </Row>
+                        )
+                    })}
+                    {lateTasks.filter(lt => lt.type === 'week').map(lt => {
+                        return (
+                            <Row key={lt.id}>
+                                <Col className="text-start">
+                                    <Form.Check
+                                    type="checkbox"
+                                    id={"check_late_" + lt.id}
+                                    label={(lt.done ? <del>{lt.name}  <span className="fw-lighter">{' (' + lt.week + '/' + lt.year + ')'}</span></del> : <div>{lt.name} <span className="fw-lighter">{' (W ' + lt.week + '/' + lt.year + ')'}</span></div>)}
+                                    onChange={event => setLateChecked(event, lt.id)}
+                                    checked={lt.checked} />
+                                </Col>
+                            </Row>
+                        )
+                    })}
                 </Col>
             </Row>
-            <Row>
+            <Row className="mt-2">
                 <Col sm={{span: 1, offset: 4}} className="text-end">
                     <Button variant="success" onClick={_ => markAsDone(true)}>
                         <i className="bi bi-check"/>

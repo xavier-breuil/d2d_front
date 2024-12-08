@@ -4,22 +4,26 @@ const backendBaseUrl = 'http://127.0.0.1:8000/';
 const backendUrls = {
     weekTask:'week_task/',
     datedTask: 'dated_task/',
+    lateTask: 'late_tasks',
     mot: 'multi_occurences_task/'
 };
 
 export const getWeekTask = (weekNum, year) => {
     let weeklyTask = [];
     let datedTask = [];
+    let lateTask = [];
     return axios.get(`${backendBaseUrl}${backendUrls.weekTask}?week_number=${weekNum}&year=${year}`)
         .then(response => {
             weeklyTask = response.data.results;
-        })
-        .then(() => {
             return axios.get(`${backendBaseUrl}${backendUrls.datedTask}?week=${weekNum}&year=${year}`)
         })
         .then(response => {
             datedTask = response.data.results;
-            return {weeklyTask, datedTask}
+            return axios.get(`${backendBaseUrl}${backendUrls.lateTask}`)
+        })
+        .then(response => {
+            lateTask = response.data.late_tasks;
+            return {weeklyTask, datedTask, lateTask}
         })
         .catch(error => {
             console.error(error);
