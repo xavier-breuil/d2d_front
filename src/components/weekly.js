@@ -27,6 +27,7 @@ function Weekly({weekNum, currentYear}) {
     const [alertType, setAlertType] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
     const [allSelected, setAllSelected] = useState(false);
+    const [weekdaysSelected, setWeekdaysSelected] = useState(weekDays.map(day => {return {...day, checked: false}}));
 
     const contentToPrintRef = useRef(null);
     const print = useReactToPrint({
@@ -87,6 +88,10 @@ function Weekly({weekNum, currentYear}) {
                     setDatedTasks(datedTasks.filter(task => !task.checked));
                     setWeekTasks(weekTasks.filter(task => !task.checked));
                     setLateTasks(lateTasks.filter(task => !task.checked));
+                    const weekdaysChecked = weekdaysSelected.map(day => {
+                        return {...day, checked: false};
+                    })
+                    setWeekdaysSelected(weekdaysChecked);
                     displayAlert(true, 'success', 'Les tâches ont bien été supprimées');
                 } else {
                     console.log(`error: deleting tasks [${[...datedToDelete, ...weekToDelete].map(task => task.id)}] returned unexpected status code: ${statusList}`);
@@ -175,6 +180,10 @@ function Weekly({weekNum, currentYear}) {
             }
         });
         setLateTasks(lateDone);
+        const weekdaysChecked = weekdaysSelected.map(day => {
+            return {...day, checked: false};
+        })
+        setWeekdaysSelected(weekdaysChecked);
     }
 
     /**
@@ -224,6 +233,23 @@ function Weekly({weekNum, currentYear}) {
         setLateTasks(lateTaskChecked);
     }
 
+    const setDayChecked = (event, weekdayNumber) => {
+        const newDaysChecked = weekdaysSelected.map(day => {
+            if (day.weekdayNumber === weekdayNumber) {
+                return {...day, checked: event.target.checked};
+            }
+            return day;
+        });
+        const newDatedTasks = datedTasks.map(task => {
+            if (task.dayOfWeek === weekdayNumber) {
+                return {...task, checked: event.target.checked};
+            }
+            return task;
+        })
+        setWeekdaysSelected(newDaysChecked);
+        setDatedTasks(newDatedTasks);
+    }
+
     return (
         <Container fluid ref={contentToPrintRef} className="px-0">
             {showAlert &&
@@ -251,10 +277,15 @@ function Weekly({weekNum, currentYear}) {
             </Row>
             <Row className="mx-5">
                 <Col>
-                    {weekDays.map(day => {
+                    {weekdaysSelected.map(day => {
                         return <div key={day.weekdayNumber}>
-                            <Row key={day.weekdayNumber} className="fw-bold mt-3">
-                                {day.name}
+                            <Row key={day.weekdayNumber} className="fw-bold mt-3 text-start">
+                                <Form.Check
+                                    type="checkbox"
+                                    id={"check_" + day.weekdayNumber}
+                                    label={day.name}
+                                    onChange={event => setDayChecked(event, day.weekdayNumber)}
+                                    checked={day.checked} />
                             </Row>
                             {datedTasks.filter(
                                 t => t.dayOfWeek === day.weekdayNumber
