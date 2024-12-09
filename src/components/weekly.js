@@ -26,6 +26,7 @@ function Weekly({weekNum, currentYear}) {
     const [showAlert, setShowAlert] = useState(false);
     const [alertType, setAlertType] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    const [allSelected, setAllSelected] = useState(false);
 
     const contentToPrintRef = useRef(null);
     const print = useReactToPrint({
@@ -213,6 +214,16 @@ function Weekly({weekNum, currentYear}) {
         window.scrollTo(0,0);
     }
 
+    const selectAll = () => {
+        setAllSelected(!allSelected);
+        const datedTaskChecked = datedTasks.map(task => {return {...task, checked: allSelected}});
+        const lateTaskChecked = lateTasks.map(task => {return {...task, checked: allSelected}});
+        const weekTaskChecked = weekTasks.map(task => {return {...task, checked: allSelected}});
+        setDatedTasks(datedTaskChecked);
+        setWeekTasks(weekTaskChecked);
+        setLateTasks(lateTaskChecked);
+    }
+
     return (
         <Container fluid ref={contentToPrintRef} className="px-0">
             {showAlert &&
@@ -320,7 +331,12 @@ function Weekly({weekNum, currentYear}) {
                 </Col>
             </Row>
             <Row className="mt-2">
-                <Col sm={{span: 1, offset: 4}} className="text-end">
+                <Col sm={{span: 2, offset: 3}} className="text-end">
+                    <Button variant="success" onClick={selectAll}>
+                        tout sélectionner
+                    </Button>
+                </Col>
+                <Col className="col-1 text-end">
                     <Button variant="success" onClick={_ => markAsDone(true)}>
                         <i className="bi bi-check"/>
                     </Button>
