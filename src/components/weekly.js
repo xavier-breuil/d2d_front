@@ -39,19 +39,19 @@ function Weekly({weekNum, currentYear}) {
         getWeekTask(weekNumber, year)
             .then(tasks => {
                 const tempWeekTasks = tasks.weeklyTask;
-                tempWeekTasks.map(task => {
+                tempWeekTasks.forEach(task => {
                     task.checked = false;
                 });
                 setWeekTasks(tempWeekTasks);
                 const tempDatedTasks = tasks.datedTask;
                 // eslint-disable-next-line
-                tempDatedTasks.map(task => {
+                tempDatedTasks.forEach(task => {
                     task.dayOfWeek = moment(task.date).isoWeekday();
                     task.checked = false;
                 });
                 setDatedTasks(tempDatedTasks);
                 const tempLateTasks = tasks.lateTask;
-                tempLateTasks.map(task => {
+                tempLateTasks.forEach(task => {
                     task.checked = false;
                 });
                 setLateTasks(tempLateTasks);

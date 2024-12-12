@@ -2,7 +2,7 @@ import moment from 'moment';
 
 export const getNextWeek = (weekNumber, year) => {
     const weekInYear = moment().set('year', year).isoWeeksInYear();
-    if (weekNumber == weekInYear) {
+    if (weekNumber === weekInYear) {
         return {
             year: year + 1,
             weekNumber: 1
@@ -15,7 +15,7 @@ export const getNextWeek = (weekNumber, year) => {
 }
 
 export const getPreviousWeek = (weekNumber, year) => {
-    if (weekNumber == 1) {
+    if (weekNumber === 1) {
         return {
             year: year - 1,
             weekNumber: moment().set('year', year - 1).isoWeeksInYear()
@@ -29,6 +29,10 @@ export const getPreviousWeek = (weekNumber, year) => {
 
 export const emptyString = str => {
     return !str.replace(/\s+/g, '');
+}
+
+export const replaceMultipleSpace = str => {
+    return str.replace(/\s+/g, ' ');
 }
 
 const isWeek = str => {

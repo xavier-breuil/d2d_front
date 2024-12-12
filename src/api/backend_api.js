@@ -4,6 +4,7 @@ const backendBaseUrl = 'http://127.0.0.1:8000/';
 const backendUrls = {
     weekTask:'week_task/',
     datedTask: 'dated_task/',
+    label: 'label/',
     lateTask: 'late_tasks',
     mot: 'multi_occurences_task/'
 };
@@ -91,4 +92,31 @@ export const markAsDoneTask = (taskId, taskDone, taskType) => {
             `${backendBaseUrl}${backendUrls.weekTask}${taskId}/`, {done: taskDone}
         )
     }
+}
+
+export const getLabels = () => {
+    return axios.get(`${backendBaseUrl}${backendUrls.label}`)
+        .then(response => {
+            return response.data.results;
+        })
+}
+
+export const patchLabel = label => {
+    const id = label.id;
+    delete label.id;
+    return axios.patch(
+        `${backendBaseUrl}${backendUrls.label}${id}/`, {name: label.name}
+    );
+}
+
+export const createLabel = label => {
+    return axios.post(
+        `${backendBaseUrl}${backendUrls.label}`, {name: label.name}
+    );
+}
+
+export const deleteLabel = label => {
+    return axios.delete(
+        `${backendBaseUrl}${backendUrls.label}${label.id}/`
+    );
 }

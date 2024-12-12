@@ -1,20 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import Stacks from 'react-bootstrap/Stack';
 
 import { emptyString, correctWeekYear, isDate } from '../utils/functions';
-import { createTask } from '../api/backend_api';
+import { getLabels, createTask } from '../api/backend_api';
 
 const Task = () => {
     const [taskType, setTaskType] = useState('date');
-    const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:'', done: false}]);
-    const [weekTaskForm, setWeekTaskForm] = useState([{name:'', week:'', year: '', done: false}]);
+    const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:'', done: false, label: []}]);
+    const [weekTaskForm, setWeekTaskForm] = useState([{name:'', week:'', year: '', done: false, label: []}]);
     const [showAlert, setShowAlert] = useState(false);
     const [alertType, setAlertType] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    const [labels, setLabels] = useState([]);
+
+    useEffect(() => {
+        getLabels()
+            .then(labelList => {
+                setLabels(labelList);
+            })
+            .catch(error => {
+                console.log(error);
+                displayAlert(true, 'danger', 'Erreur lors de la récupération des étiquettes');
+            })
+    },
+
+    [])
 
     const typeChanged = event => {
         setTaskType(event.target.value);
@@ -23,7 +39,7 @@ const Task = () => {
     const dateNameChanged = (event, index) => {
         const newTasks = dateTaskForm.map((task, i) => {
             if (i === index) {
-                return {date: task.date, name: event.target.value, done: false};
+                return {date: task.date, name: event.target.value, done: false, label: task.label};
             } else {
                 return task;
             }
@@ -34,7 +50,12 @@ const Task = () => {
     const weekNameChanged = (event, index) => {
         const newTasks = weekTaskForm.map((task, i) => {
             if (i === index) {
-                return {week: task.week, year: task.year, name: event.target.value, done: false};
+                return {
+                    week: task.week,
+                    year: task.year,
+                    name: event.target.value,
+                    done: false,
+                    label: task.label};
             } else {
                 return task;
             }
@@ -45,7 +66,12 @@ const Task = () => {
     const weekChanged = (event, index) => {
         const newTasks = weekTaskForm.map((task, i) => {
             if (i === index) {
-                return {week: event.target.value, year: task.year, name: task.name, done: false};
+                return {
+                    week: event.target.value,
+                    year: task.year,
+                    name: task.name,
+                    done: false,
+                    label: task.label};
             } else {
                 return task;
             }
@@ -56,7 +82,12 @@ const Task = () => {
     const yearChanged = (event, index) => {
         const newTasks = weekTaskForm.map((task, i) => {
             if (i === index) {
-                return {week: task.week, year: event.target.value, name: task.name, done: false};
+                return {
+                    week: task.week,
+                    year: event.target.value,
+                    name: task.name,
+                    done: false,
+                    label: task.label};
             } else {
                 return task;
             }
@@ -67,7 +98,7 @@ const Task = () => {
     const dateChanged = (event, index) => {
         const newTasks = dateTaskForm.map((task, i) => {
             if (i === index) {
-                return {name: task.name, date: event.target.value};
+                return {name: task.name, date: event.target.value, label: task.label};
             } else {
                 return task;
             }
@@ -105,7 +136,8 @@ const Task = () => {
             name: task.name,
             year: task.year,
             week_number: task.week,
-            done: task.done
+            done: task.done,
+            label: task.label
         }
     }
 
@@ -136,11 +168,11 @@ const Task = () => {
         // Post data on backend
         const taskPromises = [];
         if (taskType === 'date') {
-            dateTaskForm.map(data => {
+            dateTaskForm.forEach(data => {
                 taskPromises.push(createTask('date', data));
             });
         } else if (taskType === 'week') {
-            weekTaskForm.map(data => {
+            weekTaskForm.forEach(data => {
                 taskPromises.push(createTask('week', formatWeekData(data)));
             });
         }
@@ -161,8 +193,8 @@ const Task = () => {
     }
 
     const resetForm = ()=> {
-        setDateTaskForm([{name:'', date:'', done: false}]);
-        setWeekTaskForm([{name:'', year:'', week: '', done: false}]);
+        setDateTaskForm([{name:'', date:'', done: false, label: []}]);
+        setWeekTaskForm([{name:'', year:'', week: '', done: false, label: []}]);
     }
 
     const keyDown = event => {
@@ -174,10 +206,10 @@ const Task = () => {
 
     const addTask = () => {
         if (taskType === 'date') {
-            setDateTaskForm([...dateTaskForm,{name:'', date:'', done: false}]);
+            setDateTaskForm([...dateTaskForm,{name:'', date:'', done: false, label: []}]);
         }
         if (taskType === 'week') {
-            setWeekTaskForm([...weekTaskForm,{name:'', week:'', year: '', done: false}]);
+            setWeekTaskForm([...weekTaskForm,{name:'', week:'', year: '', done: false, label: []}]);
         }
     }
 
@@ -194,6 +226,36 @@ const Task = () => {
         setAlertMessage(message);
         setAlertType(type);
         window.scrollTo(0,0);
+    }
+
+    const addLabel = (_, index, label) => {
+        if (taskType === 'date') {
+            const newTasks = dateTaskForm.map((task, i) => {
+                if (i === index) {
+                    const labelIndex = task.label.indexOf(label);
+                    if (labelIndex === -1) {
+                        task.label.push(label);
+                    } else {
+                        task.label.splice(labelIndex, 1);
+                    }
+                }
+                return task;
+            });
+            setDateTaskForm(newTasks);
+        } else if (taskType === 'week') {
+            const newTasks = weekTaskForm.map((task, i) => {
+                if (i === index) {
+                    const labelIndex = task.label.indexOf(label);
+                    if (labelIndex === -1) {
+                        task.label.push(label);
+                    } else {
+                        task.label.splice(labelIndex, 1);
+                    }
+                }
+                return task;
+            });
+            setWeekTaskForm(newTasks);
+        }
     }
 
     return (
@@ -228,26 +290,45 @@ const Task = () => {
                 </Row>
                 {taskType === 'date' &&
                         dateTaskForm.map((task, index) => { return (
-                            <Row key={'date_task_row_' + index} className="align-items-end">
-                                <Form.Group as={Col} className="mb-4 text-start" controlId="taskDate">
+                            <Row key={'date_task_row_' + index} className="mb-2 align-items-end">
+                                <Form.Group as={Col} className="text-start" controlId="taskDate">
                                     <Form.Label>Date:</Form.Label>
                                     <Form.Control
                                         type="date"
                                         onChange={event => dateChanged(event, index)}
                                         value={task.date}/>
                                 </Form.Group>
-                                <Form.Group as={Col} className="mb-4 text-start" controlId="taskName">
+                                <Form.Group as={Col} className="text-start" controlId="taskName">
                                     <Form.Label>Nom de la tâche</Form.Label>
                                     <Form.Control
                                         onChange={event => dateNameChanged(event, index)}
                                         value={task.name}/>
                                 </Form.Group>
-                                <Form.Group as={Col} className="mb-4 text-start" controlId="datedTaskDelete">
+                                <Form.Group as={Col} className="text-start" controlId="datedTaskDelete">
                                     <Button
                                         variant="outline-danger"
                                         onClick={event => deleteDatedTask(index)}>
                                             <i className="bi bi-trash"></i>
-                                        </Button>
+                                    </Button>
+                                </Form.Group>
+                                <Form.Group className="text-start">
+                                    <Form.Label>
+                                        Etiquettes:
+                                    </Form.Label>
+                                    <Stacks
+                                        direction="horizontal"
+                                        gap="1"
+                                        className="mb-4">
+                                        {labels.map(label => {
+                                            return <Button
+                                                key={'label-date-button-' + label.id}
+                                                size="sm"
+                                                variant={task.label.includes(label) ? 'primary' : 'outline-primary'}
+                                                onClick={event => addLabel(event, index, label)}>
+                                                {label.name}
+                                            </Button>
+                                        })}
+                                    </Stacks>
                                 </Form.Group>
                             </Row>)
                         })
@@ -282,6 +363,25 @@ const Task = () => {
                                         onClick={event => deleteWeekTask(index)}>
                                             <i className="bi bi-trash"></i>
                                         </Button>
+                                </Form.Group>
+                                <Form.Group className="text-start">
+                                    <Form.Label>
+                                        Etiquettes:
+                                    </Form.Label>
+                                    <Stacks
+                                        direction="horizontal"
+                                        gap="1"
+                                        className="mb-4">
+                                        {labels.map(label => {
+                                            return <Button
+                                                key={'label-week-button-' + label.id}
+                                                size="sm"
+                                                variant={task.label.includes(label) ? 'primary' : 'outline-primary'}
+                                                onClick={event => addLabel(event, index, label)}>
+                                                {label.name}
+                                            </Button>
+                                        })}
+                                    </Stacks>
                                 </Form.Group>
                             </Row>)
                     })

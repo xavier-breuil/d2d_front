@@ -5,10 +5,11 @@ import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
+import Stacks from 'react-bootstrap/Stack';
 
 import {weekDays} from '../utils/constants';
 import {emptyString, isDate} from '../utils/functions';
-import {updateMot, createMot} from '../api/backend_api';
+import {updateMot, createMot, getLabels} from '../api/backend_api';
 import YearlessDatePicker from './yearlessDatePicker';
 
 const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}) => {
@@ -24,6 +25,8 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}
     const [everyYear, setEveryYear] = useState(mot.every_year);
     // id 0f 0 indicates creation when save, otherwise, update.
     const [motId, setMotId] = useState(mot.id || 0);
+    const [labels, setLabels] = useState([]);
+    const [selectedLabels, setSelectedLabels] = useState([]);
 
     useEffect(() => {
         setMotName(mot.name);
@@ -37,7 +40,18 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}
         setEveryLastDayOfMonth(mot.every_last_day_of_month);
         setEveryYear(mot.every_year);
         setMotId(mot.id || 0);
+        setSelectedLabels(mot.label || []);
+        getLabels()
+            .then(labelList => {
+                setLabels(labelList);
+            })
+            .catch(error => {
+                console.log(error);
+                displayAlert(true, 'danger', 'Erreur lors de la récupération des étiquettes');
+            });
     },
+    // No need to include display alert in useEffect dependancies
+    // eslint-disable-next-line
     [mot])
 
     const motNameChanged = event => {
@@ -176,7 +190,7 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}
         if (lastDayOfMonth) {
             filledFields++;
         }
-        if (filledFields != 1) {
+        if (filledFields !== 1) {
             fieldErrors.push('exactement un des champs * doit être informé');
         }
         if (fieldErrors.length > 0) {
@@ -203,7 +217,8 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}
             number_a_day: numberADay,
             number_a_week: numberAWeek,
             every_last_day_of_month: lastDayOfMonth,
-            every_year: everyYear
+            every_year: everyYear,
+            label: selectedLabels
         }
     }
 
@@ -233,6 +248,18 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}
             })
     }
 
+    const addLabel = (_, label) => {
+        const tempLabels = [];
+        selectedLabels.forEach(lab => tempLabels.push(lab.id));
+        const labelIndex = tempLabels.indexOf(label.id);
+        if (labelIndex === -1) {
+            tempLabels.push(label.id);
+        } else {
+            tempLabels.splice(labelIndex, 1);
+        }
+        setSelectedLabels(labels.filter(lab => tempLabels.includes(lab.id)));
+    }
+
     return (
         <Form onSubmit={validateAndPost}>
             <Form.Group className="m-4 col-lg-6 text-start" controlId="motName">
@@ -242,6 +269,24 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}
             <Form.Group className="m-4 col-lg-6 text-start" controlId="motTaskName">
                 <Form.Label>Nom des tâches</Form.Label>
                 <Form.Control onChange={taskNameChanged} value={taskName} />
+            </Form.Group>
+            <Form.Group className="m-4 col-lg-6 text-start">
+                <Form.Label>
+                    Etiquettes:
+                </Form.Label>
+                <Stacks
+                    direction="horizontal"
+                    gap="1">
+                    {labels.map(label => {
+                        return <Button
+                            key={'label-button-' + label.id}
+                            size="sm"
+                            variant={selectedLabels.map(lab => lab.id).includes(label.id) ? 'primary' : 'outline-primary'}
+                            onClick={event => addLabel(event, label)}>
+                            {label.name}
+                        </Button>
+                })}
+                </Stacks>
             </Form.Group>
             <Form.Group className="m-4 col-lg-6 text-start" controlId="motStartDate">
                 <Form.Label>date de début</Form.Label>
