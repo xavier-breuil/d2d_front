@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import Stacks from 'react-bootstrap/Stack';
 
 import { emptyString, correctWeekYear, isDate } from '../utils/functions';
-import { createTask } from '../api/backend_api';
+import { getLabels, createTask } from '../api/backend_api';
 
 const Task = () => {
     const [taskType, setTaskType] = useState('date');
@@ -15,6 +17,20 @@ const Task = () => {
     const [showAlert, setShowAlert] = useState(false);
     const [alertType, setAlertType] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
+    const [labels, setLabels] = useState([]);
+
+    useEffect(() => {
+        getLabels()
+            .then(labelList => {
+                setLabels(labelList);
+            })
+            .catch(error => {
+                console.log(error);
+                displayAlert(true, 'danger', 'Erreur lors de la récupération des étiquettes');
+            })
+    },
+
+    [])
 
     const typeChanged = event => {
         setTaskType(event.target.value);
@@ -228,26 +244,43 @@ const Task = () => {
                 </Row>
                 {taskType === 'date' &&
                         dateTaskForm.map((task, index) => { return (
-                            <Row key={'date_task_row_' + index} className="align-items-end">
-                                <Form.Group as={Col} className="mb-4 text-start" controlId="taskDate">
+                            <Row key={'date_task_row_' + index} className="mb-2 align-items-end">
+                                <Form.Group as={Col} className="text-start" controlId="taskDate">
                                     <Form.Label>Date:</Form.Label>
                                     <Form.Control
                                         type="date"
                                         onChange={event => dateChanged(event, index)}
                                         value={task.date}/>
                                 </Form.Group>
-                                <Form.Group as={Col} className="mb-4 text-start" controlId="taskName">
+                                <Form.Group as={Col} className="text-start" controlId="taskName">
                                     <Form.Label>Nom de la tâche</Form.Label>
                                     <Form.Control
                                         onChange={event => dateNameChanged(event, index)}
                                         value={task.name}/>
                                 </Form.Group>
-                                <Form.Group as={Col} className="mb-4 text-start" controlId="datedTaskDelete">
+                                <Form.Group as={Col} className="text-start" controlId="datedTaskDelete">
                                     <Button
                                         variant="outline-danger"
                                         onClick={event => deleteDatedTask(index)}>
                                             <i className="bi bi-trash"></i>
-                                        </Button>
+                                    </Button>
+                                </Form.Group>
+                                <Form.Group className="text-start">
+                                    <Form.Label>
+                                        Etiquettes:
+                                    </Form.Label>
+                                    <Stacks
+                                        direction="horizontal"
+                                        gap="1"
+                                        className="mb-4">
+                                        {labels.map(label => {
+                                            return <Button
+                                                key={'label-button-' + label.id}
+                                                size="sm">
+                                                {label.name}
+                                            </Button>
+                                        })}
+                                    </Stacks>
                                 </Form.Group>
                             </Row>)
                         })
