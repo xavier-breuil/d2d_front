@@ -12,7 +12,7 @@ import { getLabels, createTask } from '../api/backend_api';
 
 const Task = () => {
     const [taskType, setTaskType] = useState('date');
-    const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:'', done: false}]);
+    const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:'', done: false, label: []}]);
     const [weekTaskForm, setWeekTaskForm] = useState([{name:'', week:'', year: '', done: false}]);
     const [showAlert, setShowAlert] = useState(false);
     const [alertType, setAlertType] = useState('');
@@ -39,7 +39,7 @@ const Task = () => {
     const dateNameChanged = (event, index) => {
         const newTasks = dateTaskForm.map((task, i) => {
             if (i === index) {
-                return {date: task.date, name: event.target.value, done: false};
+                return {date: task.date, name: event.target.value, done: false, label: task.label};
             } else {
                 return task;
             }
@@ -83,7 +83,7 @@ const Task = () => {
     const dateChanged = (event, index) => {
         const newTasks = dateTaskForm.map((task, i) => {
             if (i === index) {
-                return {name: task.name, date: event.target.value};
+                return {name: task.name, date: event.target.value, label: task.label};
             } else {
                 return task;
             }
@@ -177,7 +177,7 @@ const Task = () => {
     }
 
     const resetForm = ()=> {
-        setDateTaskForm([{name:'', date:'', done: false}]);
+        setDateTaskForm([{name:'', date:'', done: false, label: []}]);
         setWeekTaskForm([{name:'', year:'', week: '', done: false}]);
     }
 
@@ -190,7 +190,7 @@ const Task = () => {
 
     const addTask = () => {
         if (taskType === 'date') {
-            setDateTaskForm([...dateTaskForm,{name:'', date:'', done: false}]);
+            setDateTaskForm([...dateTaskForm,{name:'', date:'', done: false, label: []}]);
         }
         if (taskType === 'week') {
             setWeekTaskForm([...weekTaskForm,{name:'', week:'', year: '', done: false}]);
@@ -210,6 +210,21 @@ const Task = () => {
         setAlertMessage(message);
         setAlertType(type);
         window.scrollTo(0,0);
+    }
+
+    const addLabel = (_, index, label) => {
+        const newTasks = dateTaskForm.map((task, i) => {
+            if (i === index) {
+                const labelIndex = task.label.indexOf(label);
+                if (labelIndex === -1) {
+                    task.label.push(label);
+                } else {
+                    task.label.splice(labelIndex, 1);
+                }
+            }
+            return task;
+        });
+        setDateTaskForm(newTasks);
     }
 
     return (
@@ -276,7 +291,9 @@ const Task = () => {
                                         {labels.map(label => {
                                             return <Button
                                                 key={'label-button-' + label.id}
-                                                size="sm">
+                                                size="sm"
+                                                variant={task.label.includes(label) ? 'primary' : 'outline-primary'}
+                                                onClick={event => addLabel(event, index, label)}>
                                                 {label.name}
                                             </Button>
                                         })}
