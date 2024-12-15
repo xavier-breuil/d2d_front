@@ -13,7 +13,7 @@ import { getLabels, createTask } from '../api/backend_api';
 const Task = () => {
     const [taskType, setTaskType] = useState('date');
     const [dateTaskForm, setDateTaskForm] = useState([{name:'', date:'', done: false, label: []}]);
-    const [weekTaskForm, setWeekTaskForm] = useState([{name:'', week:'', year: '', done: false}]);
+    const [weekTaskForm, setWeekTaskForm] = useState([{name:'', week:'', year: '', done: false, label: []}]);
     const [showAlert, setShowAlert] = useState(false);
     const [alertType, setAlertType] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
@@ -50,7 +50,12 @@ const Task = () => {
     const weekNameChanged = (event, index) => {
         const newTasks = weekTaskForm.map((task, i) => {
             if (i === index) {
-                return {week: task.week, year: task.year, name: event.target.value, done: false};
+                return {
+                    week: task.week,
+                    year: task.year,
+                    name: event.target.value,
+                    done: false,
+                    label: task.label};
             } else {
                 return task;
             }
@@ -61,7 +66,12 @@ const Task = () => {
     const weekChanged = (event, index) => {
         const newTasks = weekTaskForm.map((task, i) => {
             if (i === index) {
-                return {week: event.target.value, year: task.year, name: task.name, done: false};
+                return {
+                    week: event.target.value,
+                    year: task.year,
+                    name: task.name,
+                    done: false,
+                    label: task.label};
             } else {
                 return task;
             }
@@ -72,7 +82,12 @@ const Task = () => {
     const yearChanged = (event, index) => {
         const newTasks = weekTaskForm.map((task, i) => {
             if (i === index) {
-                return {week: task.week, year: event.target.value, name: task.name, done: false};
+                return {
+                    week: task.week,
+                    year: event.target.value,
+                    name: task.name,
+                    done: false,
+                    label: task.label};
             } else {
                 return task;
             }
@@ -121,7 +136,8 @@ const Task = () => {
             name: task.name,
             year: task.year,
             week_number: task.week,
-            done: task.done
+            done: task.done,
+            label: task.label
         }
     }
 
@@ -178,7 +194,7 @@ const Task = () => {
 
     const resetForm = ()=> {
         setDateTaskForm([{name:'', date:'', done: false, label: []}]);
-        setWeekTaskForm([{name:'', year:'', week: '', done: false}]);
+        setWeekTaskForm([{name:'', year:'', week: '', done: false, label: []}]);
     }
 
     const keyDown = event => {
@@ -193,7 +209,7 @@ const Task = () => {
             setDateTaskForm([...dateTaskForm,{name:'', date:'', done: false, label: []}]);
         }
         if (taskType === 'week') {
-            setWeekTaskForm([...weekTaskForm,{name:'', week:'', year: '', done: false}]);
+            setWeekTaskForm([...weekTaskForm,{name:'', week:'', year: '', done: false, label: []}]);
         }
     }
 
@@ -213,18 +229,33 @@ const Task = () => {
     }
 
     const addLabel = (_, index, label) => {
-        const newTasks = dateTaskForm.map((task, i) => {
-            if (i === index) {
-                const labelIndex = task.label.indexOf(label);
-                if (labelIndex === -1) {
-                    task.label.push(label);
-                } else {
-                    task.label.splice(labelIndex, 1);
+        if (taskType === 'date') {
+            const newTasks = dateTaskForm.map((task, i) => {
+                if (i === index) {
+                    const labelIndex = task.label.indexOf(label);
+                    if (labelIndex === -1) {
+                        task.label.push(label);
+                    } else {
+                        task.label.splice(labelIndex, 1);
+                    }
                 }
-            }
-            return task;
-        });
-        setDateTaskForm(newTasks);
+                return task;
+            });
+            setDateTaskForm(newTasks);
+        } else if (taskType === 'week') {
+            const newTasks = weekTaskForm.map((task, i) => {
+                if (i === index) {
+                    const labelIndex = task.label.indexOf(label);
+                    if (labelIndex === -1) {
+                        task.label.push(label);
+                    } else {
+                        task.label.splice(labelIndex, 1);
+                    }
+                }
+                return task;
+            });
+            setWeekTaskForm(newTasks);
+        }
     }
 
     return (
@@ -290,7 +321,7 @@ const Task = () => {
                                         className="mb-4">
                                         {labels.map(label => {
                                             return <Button
-                                                key={'label-button-' + label.id}
+                                                key={'label-date-button-' + label.id}
                                                 size="sm"
                                                 variant={task.label.includes(label) ? 'primary' : 'outline-primary'}
                                                 onClick={event => addLabel(event, index, label)}>
@@ -332,6 +363,25 @@ const Task = () => {
                                         onClick={event => deleteWeekTask(index)}>
                                             <i className="bi bi-trash"></i>
                                         </Button>
+                                </Form.Group>
+                                <Form.Group className="text-start">
+                                    <Form.Label>
+                                        Etiquettes:
+                                    </Form.Label>
+                                    <Stacks
+                                        direction="horizontal"
+                                        gap="1"
+                                        className="mb-4">
+                                        {labels.map(label => {
+                                            return <Button
+                                                key={'label-week-button-' + label.id}
+                                                size="sm"
+                                                variant={task.label.includes(label) ? 'primary' : 'outline-primary'}
+                                                onClick={event => addLabel(event, index, label)}>
+                                                {label.name}
+                                            </Button>
+                                        })}
+                                    </Stacks>
                                 </Form.Group>
                             </Row>)
                     })
