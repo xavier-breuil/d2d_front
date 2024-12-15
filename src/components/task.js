@@ -152,11 +152,11 @@ const Task = () => {
         // Post data on backend
         const taskPromises = [];
         if (taskType === 'date') {
-            dateTaskForm.map(data => {
+            dateTaskForm.forEach(data => {
                 taskPromises.push(createTask('date', data));
             });
         } else if (taskType === 'week') {
-            weekTaskForm.map(data => {
+            weekTaskForm.forEach(data => {
                 taskPromises.push(createTask('week', formatWeekData(data)));
             });
         }

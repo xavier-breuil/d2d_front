@@ -176,7 +176,7 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}
         if (lastDayOfMonth) {
             filledFields++;
         }
-        if (filledFields != 1) {
+        if (filledFields !== 1) {
             fieldErrors.push('exactement un des champs * doit être informé');
         }
         if (fieldErrors.length > 0) {
