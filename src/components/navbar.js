@@ -15,6 +15,7 @@ const linkFormat = {color: 'white', fontSize: '1.3em'};
           <Nav.Link href="/" style={linkFormat}>semainier</Nav.Link>
           <Nav.Link href="/task" style={linkFormat}>ajouter une tâche</Nav.Link>
           <Nav.Link href="/mot" style={linkFormat}>tâches récurrentes</Nav.Link>
+          <Nav.Link href="/label" style={linkFormat}>étiquettes</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
