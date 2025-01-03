@@ -100,3 +100,23 @@ export const getLabels = () => {
             return response.data.results;
         })
 }
+
+export const patchLabel = label => {
+    const id = label.id;
+    delete label.id;
+    return axios.patch(
+        `${backendBaseUrl}${backendUrls.label}${id}/`, {name: label.name}
+    );
+}
+
+export const createLabel = label => {
+    return axios.post(
+        `${backendBaseUrl}${backendUrls.label}`, {name: label.name}
+    );
+}
+
+export const deleteLabel = label => {
+    return axios.delete(
+        `${backendBaseUrl}${backendUrls.label}${label.id}/`
+    );
+}

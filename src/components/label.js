@@ -6,7 +6,7 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Stack from 'react-bootstrap/Stack';
 
-import {getLabels} from '../api/backend_api';
+import {getLabels, patchLabel, createLabel, deleteLabel} from '../api/backend_api';
 
 const Label = () => {
     const [labels, setLabels] = useState([]);
@@ -15,6 +15,12 @@ const Label = () => {
     const [alertType, setAlertType] = useState('');
 
     useEffect(() => {
+        initLabels();
+    },
+    // eslint-disable-next-line
+    [])
+
+    const initLabels = () => {
         getLabels()
             .then(labelList => {
                 labelList.forEach((label, index) => {
@@ -26,8 +32,7 @@ const Label = () => {
                 console.log(error);
                 displayAlert(true, 'danger', 'Erreur de récupération des étiquettes');
             })
-    },
-    [])
+    }
 
     const displayAlert = (show, type, alertMessage) => {
         setShowAlert(show);
@@ -53,7 +58,7 @@ const Label = () => {
         setLabels(newLabels);
     }
 
-    const deleteLabel = (event, index) => {
+    const hideLabel = (event, index) => {
         const newLabels = labels.map((label, ind) => {
             if (ind === index) {
                 return {...label, show: false};
@@ -62,6 +67,43 @@ const Label = () => {
             }
         })
         setLabels(newLabels);
+    }
+
+    const saveLabels = event => {
+        // TODO: validate form before
+        const toCreate = labels.filter(label => {
+            return label.id === undefined && label.show;
+        });
+        const toModify = labels.filter(label => {
+            return label.id && label.show;
+        });
+        const toDelete = labels.filter(label => {
+            return label.id && !label.show;
+        })
+        const labelPromises = [];
+        toCreate.forEach(label => {
+            labelPromises.push(createLabel(label));
+        });
+        toModify.forEach(label => {
+            labelPromises.push(patchLabel(label));
+        })
+        toDelete.forEach(label => {
+            labelPromises.push(deleteLabel(label));
+        })
+        Promise.all(labelPromises).then(
+            responses => {
+                if (responses.every(resp => [200, 201, 204].includes(resp.status))) {
+                    // set id for created labels, remove deleted labels
+                    initLabels()
+                    displayAlert(true, 'success', 'Les étiquettes ont bien été modifiées');
+                } else {
+                    displayAlert(true, 'danger', `Erreur lors de la modification des étiquettes`);
+                }
+            }
+        ).catch(error => {
+            console.log(error);
+            displayAlert(true, 'danger', `Erreur lors de la modification des étiquettes`);
+        });
     }
 
     return (
@@ -75,7 +117,7 @@ const Label = () => {
                         key={'label-row-' + index}
                         className="ms-4 mt-4"
                         gap={3}>
-                        <Button variant="outline-danger" onClick={event => deleteLabel(event, index)}><i className="bi bi-trash" /></Button>
+                        <Button variant="outline-danger" onClick={event => hideLabel(event, index)}><i className="bi bi-trash" /></Button>
                         <Form.Group className="col-lg-4 text-start">
                             <Form.Control onChange={event => nameChanged(event, label, index)} value={label.name} />
                         </Form.Group>
@@ -84,7 +126,7 @@ const Label = () => {
             })}
             <Stack direction="horizontal" gap={4} className="ms-4 mt-4">
                     <Button onClick={addLabel}>Ajouter</Button>
-                    <Button>Sauvegarder</Button>
+                    <Button onClick={saveLabels}>Sauvegarder</Button>
             </Stack>
       </Container>
     )
