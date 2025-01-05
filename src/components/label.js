@@ -7,6 +7,7 @@ import Button from 'react-bootstrap/Button';
 import Stack from 'react-bootstrap/Stack';
 
 import {getLabels, patchLabel, createLabel, deleteLabel} from '../api/backend_api';
+import { emptyString, replaceMultipleSpace } from '../utils/functions';
 
 const Label = () => {
     const [labels, setLabels] = useState([]);
@@ -69,15 +70,38 @@ const Label = () => {
         setLabels(newLabels);
     }
 
-    const saveLabels = event => {
-        // TODO: validate form before
-        const toCreate = labels.filter(label => {
+    const validateAndPostLabels = event => {
+        const formatedLabels = [];
+        const labelNames = [];
+        labels.forEach(label => {
+            const formatedName = replaceMultipleSpace(label.name).trim();
+            formatedLabels.push({...label, name: formatedName});
+            if (label.show) {
+                labelNames.push(formatedName);
+            }
+        })
+        //Check for duplicate names
+        if ((new Set(labelNames)).size !== formatedLabels.filter(label => label.show).length) {
+            displayAlert(true, 'danger', `Veuillez renseigner un nom différent pour chaque étiquette`);
+        // Check for empty label
+        } else if (formatedLabels.filter(label => {
+            return emptyString(label.name) && label.show;
+        }).length > 0) {
+            console.log('here 2');
+            displayAlert(true, 'danger', `Veuillez renseigner un nom différent pour chaque étiquette`);
+        } else {
+            saveLabels(formatedLabels);
+        }
+    }
+
+    const saveLabels = (formatedLabels) => {
+        const toCreate = formatedLabels.filter(label => {
             return label.id === undefined && label.show;
         });
-        const toModify = labels.filter(label => {
+        const toModify = formatedLabels.filter(label => {
             return label.id && label.show;
         });
-        const toDelete = labels.filter(label => {
+        const toDelete = formatedLabels.filter(label => {
             return label.id && !label.show;
         })
         const labelPromises = [];
@@ -126,7 +150,7 @@ const Label = () => {
             })}
             <Stack direction="horizontal" gap={4} className="ms-4 mt-4">
                     <Button onClick={addLabel}>Ajouter</Button>
-                    <Button onClick={saveLabels}>Sauvegarder</Button>
+                    <Button onClick={validateAndPostLabels}>Sauvegarder</Button>
             </Stack>
       </Container>
     )

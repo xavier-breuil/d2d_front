@@ -31,6 +31,10 @@ export const emptyString = str => {
     return !str.replace(/\s+/g, '');
 }
 
+export const replaceMultipleSpace = str => {
+    return str.replace(/\s+/g, ' ');
+}
+
 const isWeek = str => {
     const num = Number(str);
     return (
