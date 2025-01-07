@@ -182,11 +182,16 @@ const MotForm = ({mot, parentMotNameChanged, setAddButtonDisabled, displayAlert}
             fieldErrors.push('la date de fin doit être supérieur à la date de début');
         }
         let filledFields = 0;
-        [numberADay, numberAWeek,everyWeek, everyMonth, everyYear].forEach(field => {
+        [numberADay, numberAWeek].forEach(field => {
+            if (typeof(field) === 'number' || (typeof(field) === 'string' && !emptyString(field))) {
+                    filledFields++;
+            }
+        });
+        [everyWeek, everyMonth, everyYear].forEach(field => {
             if (field.length > 0) {
                 filledFields++;
             }
-        })
+        });
         if (lastDayOfMonth) {
             filledFields++;
         }
