@@ -43,3 +43,7 @@ export const defaultMot = {
 }
 
 export const acceptedDeleteStatus = [200, 204];
+
+export const colors = {
+    lightGreen: '#00DA80'
+}

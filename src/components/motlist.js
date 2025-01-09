@@ -11,7 +11,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 
 import {getMots, deleteMot} from '../api/backend_api';
 import MotForm from './motform';
-import {defaultMot, acceptedDeleteStatus} from '../utils/constants';
+import {defaultMot, acceptedDeleteStatus, colors} from '../utils/constants';
 
 const MotList = () => {
     const [motList, setMotList] = useState([]);
@@ -102,10 +102,12 @@ const MotList = () => {
                         disabled={addButtonDisabled}>ajouter une récurrence</Button>
                         {motList.map(mot => {
                             return (
-                                    <ListGroup.Item key={'item_' + mot.id}>
+                                    <ListGroup.Item
+                                        key={'item_' + mot.id}
+                                        style={mot.done_tasks_count === mot.related_tasks_count ? {background: colors.lightGreen} : {}}>
                                         <Stack direction="horizontal">
                                             <Button variant="link" onClick={() => setMot(mot)}>
-                                                {mot.name}
+                                                {mot.name} ({mot.done_tasks_count}/{mot.related_tasks_count})
                                             </Button >
                                             <div className="ms-auto">
                                                 <Button variant="outline-danger" onClick={_ => performDeleteMot(mot.id)}><i className="bi bi-trash" /></Button>
