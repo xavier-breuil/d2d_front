@@ -47,3 +47,7 @@ export const acceptedDeleteStatus = [200, 204];
 export const colors = {
     lightGreen: '#00DA80'
 }
+
+export const customButtonSizes = {
+    xs: '10px'
+}

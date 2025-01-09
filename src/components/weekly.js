@@ -4,13 +4,14 @@ import moment from 'moment';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 import {getWeekTask, deleteDatedTask, deleteWeekTask, markAsDoneTask} from '../api/backend_api';
-import {acceptedDeleteStatus, weekDays} from '../utils/constants';
+import {acceptedDeleteStatus, weekDays, customButtonSizes} from '../utils/constants';
 import {getNextWeek, getPreviousWeek} from '../utils/functions';
 import { useReactToPrint } from 'react-to-print';
 
@@ -293,14 +294,21 @@ function Weekly({weekNum, currentYear}) {
                                     t=> {
                                         return (
                                             <Row key={t.id}>
-                                                <Col className="text-start">
+                                                <Stack
+                                                    direction="horizontal"
+                                                    gap={3}
+                                                    className="my-2">
                                                     <Form.Check
-                                                    type="checkbox"
-                                                    id={"check_" + t.id}
-                                                    label={(t.done ? <del>{t.name}</del> : t.name)}
-                                                    onChange={event => setDatedChecked(event, t.id)}
-                                                    checked={t.checked} />
-                                                </Col>
+                                                        type="checkbox"
+                                                        id={"check_" + t.id}
+                                                        label={(t.done ? <del>{t.name}</del> : t.name)}
+                                                        onChange={event => setDatedChecked(event, t.id)}
+                                                        checked={t.checked} />
+                                                    <Button
+                                                        className="bi bi-pen py-0"
+                                                        variant="outline-primary"
+                                                        style={{fontSize: customButtonSizes.xs}}></Button>
+                                                </Stack>
                                             </Row>
                                         )
                                     }
