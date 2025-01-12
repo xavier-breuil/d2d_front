@@ -323,14 +323,21 @@ function Weekly({weekNum, currentYear}) {
                     {weekTasks.map(wt => {
                         return (
                             <Row key={wt.id}>
-                                <Col className="text-start">
+                                <Stack
+                                    direction="horizontal"
+                                    gap={3}
+                                    className="my-2">
                                     <Form.Check
-                                    type="checkbox"
-                                    id={"check_week_" + wt.id}
-                                    label={(wt.done ? <del>{wt.name}</del> : wt.name)}
-                                    onChange={event => setWeekChecked(event, wt.id)}
-                                    checked={wt.checked} />
-                                </Col>
+                                        type="checkbox"
+                                        id={"check_week_" + wt.id}
+                                        label={(wt.done ? <del>{wt.name}</del> : wt.name)}
+                                        onChange={event => setWeekChecked(event, wt.id)}
+                                        checked={wt.checked} />
+                                    <Button
+                                        className="bi bi-pen py-0"
+                                        variant="outline-primary"
+                                        style={{fontSize: customButtonSizes.xs}}></Button>
+                                </Stack>
                             </Row>
                         )
                     })}
