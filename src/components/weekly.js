@@ -8,9 +8,11 @@ import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
+import Modal from 'react-bootstrap/Modal';
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-import {getWeekTask, deleteDatedTask, deleteWeekTask, markAsDoneTask} from '../api/backend_api';
+import {getWeekTask, deleteDatedTask, deleteWeekTask, markAsDoneTask,
+    getLabels} from '../api/backend_api';
 import {acceptedDeleteStatus, weekDays, customButtonSizes} from '../utils/constants';
 import {getNextWeek, getPreviousWeek} from '../utils/functions';
 import { useReactToPrint } from 'react-to-print';
@@ -29,6 +31,12 @@ function Weekly({weekNum, currentYear}) {
     const [alertMessage, setAlertMessage] = useState('');
     const [allSelected, setAllSelected] = useState(false);
     const [weekdaysSelected, setWeekdaysSelected] = useState(weekDays.map(day => {return {...day, checked: false}}));
+    const [showDateModal, setShowDateModal] = useState(false);
+    const [modalId, setModalId] = useState();
+    const [modalDate, setModalDate] = useState();
+    const [modalTaskName, setModalTaskName] = useState();
+    const [labels, setLabels] = useState([]);
+    const [modifiedTaskLabels, setModifiedTaskLabels] = useState([]);
 
     const contentToPrintRef = useRef(null);
     const print = useReactToPrint({
@@ -57,7 +65,17 @@ function Weekly({weekNum, currentYear}) {
                 });
                 setLateTasks(tempLateTasks);
             })
-    },
+            .then(() => {
+                return getLabels();
+            })
+            .then(labelList => {
+                setLabels(labelList);
+            })
+            .catch(error => {
+                console.log(error);
+                displayAlert(true, 'danger', 'Erruer lors de la récupération des données');
+            })
+        },
 
         // useEffect on state changes
         [weekNumber, year]
@@ -251,6 +269,40 @@ function Weekly({weekNum, currentYear}) {
         setDatedTasks(newDatedTasks);
     }
 
+    const openDateModal = (taskName, taskDate, taskId, taskLabels) => {
+        setModalDate(taskDate);
+        setModalTaskName(taskName);
+        setModalId(taskId);
+        setModifiedTaskLabels(taskLabels);
+        // TODO: handle modal close (save on backend and change on screen)
+        // TODO: do the same for week tasks
+        setShowDateModal(true);
+    }
+
+    const handleCloseDateModal = () => {
+        setShowDateModal(false);
+    }
+
+    const modalTaskNameChanged = event => {
+        setModalTaskName(event.target.value);
+    }
+
+    const modalDateChanged = event => {
+        setModalDate(event.target.value);
+    }
+
+    const addLabel = (_, label) => {
+        const tempLabels = [];
+        modifiedTaskLabels.forEach(lab => tempLabels.push(lab.id));
+        const labelIndex = tempLabels.indexOf(label.id);
+        if (labelIndex === -1) {
+            tempLabels.push(label.id);
+        } else {
+            tempLabels.splice(labelIndex, 1);
+        }
+        setModifiedTaskLabels(labels.filter(lab => tempLabels.includes(lab.id)));
+    }
+
     return (
         <Container fluid ref={contentToPrintRef} className="px-0">
             {showAlert &&
@@ -258,6 +310,45 @@ function Weekly({weekNum, currentYear}) {
                     {alertMessage}
                 </Alert>
             }
+            <Modal show={showDateModal} onHide={handleCloseDateModal}>
+                <Modal.Header>
+                    <Modal.Title>Modifier tâche</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                    <Form.Group>
+                            <Form.Label>Nom de la tâche:</Form.Label>
+                            <Form.Control onChange={modalTaskNameChanged} value={modalTaskName}/>
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label>Date de la tâche:</Form.Label>
+                            <Form.Control type="date" onChange={modalDateChanged} value={modalDate}/>
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label>
+                                Etiquettes:
+                            </Form.Label>
+                            <Stack
+                                direction="horizontal"
+                                gap="1">
+                                {labels.map(label => {
+                                    return <Button
+                                        key={'label-button-' + label.id}
+                                        size="sm"
+                                        variant={modifiedTaskLabels.map(lab => lab.id).includes(label.id) ? 'primary' : 'outline-primary'}
+                                        onClick={event => addLabel(event, label)}>
+                                        {label.name}
+                                    </Button>
+                            })}
+                            </Stack>
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button onClick={handleCloseDateModal}>Enregistrer</Button>
+                    <Button onClick={handleCloseDateModal}>Annuler</Button>
+                </Modal.Footer>
+            </Modal>
             <Row>
                 <Col xs={{span: 1, offset: 4}}>
                     <Button onClick={goToPreviousWeek}>
@@ -307,7 +398,8 @@ function Weekly({weekNum, currentYear}) {
                                                     <Button
                                                         className="bi bi-pen py-0"
                                                         variant="outline-primary"
-                                                        style={{fontSize: customButtonSizes.xs}}></Button>
+                                                        style={{fontSize: customButtonSizes.xs}}
+                                                        onClick={event => openDateModal(t.name, t.date, t.id, t.label)}></Button>
                                                 </Stack>
                                             </Row>
                                         )
