@@ -44,6 +44,14 @@ export const createTask = (taskType, data) => {
     }
 }
 
+export const updateTask = (taskType, taskId, data) => {
+    if (taskType === 'date'){
+        return axios.patch(
+            `${backendBaseUrl}${backendUrls.datedTask}${taskId}/`,
+            data)
+    }
+}
+
 export const getMots = () => {
     return axios.get(`${backendBaseUrl}${backendUrls.mot}`)
         .then(response => {

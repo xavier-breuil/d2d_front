@@ -12,9 +12,9 @@ import Modal from 'react-bootstrap/Modal';
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 import {getWeekTask, deleteDatedTask, deleteWeekTask, markAsDoneTask,
-    getLabels} from '../api/backend_api';
+    getLabels, updateTask} from '../api/backend_api';
 import {acceptedDeleteStatus, weekDays, customButtonSizes} from '../utils/constants';
-import {getNextWeek, getPreviousWeek} from '../utils/functions';
+import {emptyString, getNextWeek, getPreviousWeek} from '../utils/functions';
 import { useReactToPrint } from 'react-to-print';
 
 function Weekly({weekNum, currentYear}) {
@@ -34,6 +34,7 @@ function Weekly({weekNum, currentYear}) {
     const [showDateModal, setShowDateModal] = useState(false);
     const [modalId, setModalId] = useState();
     const [modalDate, setModalDate] = useState();
+    const [modalNameError, setModalNameError] = useState(false);
     const [modalTaskName, setModalTaskName] = useState();
     const [labels, setLabels] = useState([]);
     const [modifiedTaskLabels, setModifiedTaskLabels] = useState([]);
@@ -274,9 +275,46 @@ function Weekly({weekNum, currentYear}) {
         setModalTaskName(taskName);
         setModalId(taskId);
         setModifiedTaskLabels(taskLabels);
-        // TODO: handle modal close (save on backend and change on screen)
         // TODO: do the same for week tasks
         setShowDateModal(true);
+    }
+
+    const saveTask = () => {
+        if (emptyString(modalTaskName)) {
+            setModalNameError(true);
+            return;
+        }
+        const taskData = {
+            name: modalTaskName,
+            date: modalDate,
+            label: modifiedTaskLabels.map(lab => {return {id: lab.id}})
+        };
+        updateTask('date', modalId, taskData)
+            .then(response => {
+                if (response.status === 200) {
+                    handleCloseDateModal();
+                    return response.data;
+                } else {
+                    console.log(response);
+                    throw new Error (`unexpected response status ${response.status}`);
+                }
+            })
+            .then (modTask => {
+                const tempDateTask = datedTasks.map(task => {
+                    if (task.id !== modTask.id) {
+                        return task;
+                    } else {
+                        modTask.dayOfWeek = moment(modTask.date).isoWeekday();
+                        return modTask;
+                    }
+                });
+                setDatedTasks(tempDateTask);
+            })
+            .catch (error => {
+                console.log(error);
+                handleCloseDateModal();
+                displayAlert(true, 'danger', 'Erreur lors de la modification de la tâche');
+            })
     }
 
     const handleCloseDateModal = () => {
@@ -285,6 +323,9 @@ function Weekly({weekNum, currentYear}) {
 
     const modalTaskNameChanged = event => {
         setModalTaskName(event.target.value);
+        if (event.target.value.length > 0) {
+            setModalNameError(false);
+        }
     }
 
     const modalDateChanged = event => {
@@ -318,7 +359,7 @@ function Weekly({weekNum, currentYear}) {
                     <Form>
                     <Form.Group>
                             <Form.Label>Nom de la tâche:</Form.Label>
-                            <Form.Control onChange={modalTaskNameChanged} value={modalTaskName}/>
+                            <Form.Control className={modalNameError ? 'border-danger' : ''} onChange={modalTaskNameChanged} value={modalTaskName}/>
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Date de la tâche:</Form.Label>
@@ -345,7 +386,7 @@ function Weekly({weekNum, currentYear}) {
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={handleCloseDateModal}>Enregistrer</Button>
+                    <Button onClick={saveTask}>Enregistrer</Button>
                     <Button onClick={handleCloseDateModal}>Annuler</Button>
                 </Modal.Footer>
             </Modal>
