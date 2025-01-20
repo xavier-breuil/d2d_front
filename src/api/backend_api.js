@@ -45,9 +45,14 @@ export const createTask = (taskType, data) => {
 }
 
 export const updateTask = (taskType, taskId, data) => {
-    if (taskType === 'date'){
+    if (taskType === 'date') {
         return axios.patch(
             `${backendBaseUrl}${backendUrls.datedTask}${taskId}/`,
+            data)
+    }
+    if (taskType === 'week') {
+        return axios.patch(
+            `${backendBaseUrl}${backendUrls.weekTask}${taskId}/`,
             data)
     }
 }

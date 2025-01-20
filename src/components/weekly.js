@@ -14,7 +14,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import {getWeekTask, deleteDatedTask, deleteWeekTask, markAsDoneTask,
     getLabels, updateTask} from '../api/backend_api';
 import {acceptedDeleteStatus, weekDays, customButtonSizes} from '../utils/constants';
-import {emptyString, getNextWeek, getPreviousWeek} from '../utils/functions';
+import {emptyString, getNextWeek, getPreviousWeek, correctWeekYear} from '../utils/functions';
 import { useReactToPrint } from 'react-to-print';
 
 function Weekly({weekNum, currentYear}) {
@@ -31,13 +31,17 @@ function Weekly({weekNum, currentYear}) {
     const [alertMessage, setAlertMessage] = useState('');
     const [allSelected, setAllSelected] = useState(false);
     const [weekdaysSelected, setWeekdaysSelected] = useState(weekDays.map(day => {return {...day, checked: false}}));
-    const [showDateModal, setShowDateModal] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     const [modalId, setModalId] = useState();
     const [modalDate, setModalDate] = useState();
+    const [modalYear, setModalYear] = useState();
+    const [modalWeek, setModalWeek] = useState();
     const [modalNameError, setModalNameError] = useState(false);
+    const [modalWeekYearError, setModalWeekYearError] = useState(false);
     const [modalTaskName, setModalTaskName] = useState();
     const [labels, setLabels] = useState([]);
     const [modifiedTaskLabels, setModifiedTaskLabels] = useState([]);
+    const [modalType, setModalType] = useState('');
 
     const contentToPrintRef = useRef(null);
     const print = useReactToPrint({
@@ -271,12 +275,22 @@ function Weekly({weekNum, currentYear}) {
     }
 
     const openDateModal = (taskName, taskDate, taskId, taskLabels) => {
+        setModalType('date');
         setModalDate(taskDate);
         setModalTaskName(taskName);
         setModalId(taskId);
         setModifiedTaskLabels(taskLabels);
-        // TODO: do the same for week tasks
-        setShowDateModal(true);
+        setShowModal(true);
+    }
+
+    const openWeekModal = (taskName, taskYear, taskWeek, taskId, taskLabels) => {
+        setModalType('week');
+        setModalYear(taskYear);
+        setModalWeek(taskWeek);
+        setModalTaskName(taskName);
+        setModalId(taskId);
+        setModifiedTaskLabels(taskLabels);
+        setShowModal(true);
     }
 
     const saveTask = () => {
@@ -284,15 +298,29 @@ function Weekly({weekNum, currentYear}) {
             setModalNameError(true);
             return;
         }
-        const taskData = {
-            name: modalTaskName,
-            date: modalDate,
-            label: modifiedTaskLabels.map(lab => {return {id: lab.id}})
-        };
-        updateTask('date', modalId, taskData)
+        let taskData = {};
+        if (modalType === 'date') {
+            taskData = {
+                name: modalTaskName,
+                date: modalDate,
+                label: modifiedTaskLabels.map(lab => {return {id: lab.id}})
+            };
+        } else {
+            if (!correctWeekYear(modalWeek, modalYear)) {
+                setModalWeekYearError(true);
+                return;
+            }
+            taskData = {
+                name: modalTaskName,
+                year: modalYear,
+                week_number: modalWeek,
+                label: modifiedTaskLabels.map(lab => {return {id: lab.id}})
+            }
+        }
+        updateTask(modalType, modalId, taskData)
             .then(response => {
                 if (response.status === 200) {
-                    handleCloseDateModal();
+                    handleCloseModal();
                     return response.data;
                 } else {
                     console.log(response);
@@ -300,25 +328,51 @@ function Weekly({weekNum, currentYear}) {
                 }
             })
             .then (modTask => {
-                const tempDateTask = datedTasks.map(task => {
-                    if (task.id !== modTask.id) {
-                        return task;
+                modTask.checked = false;
+                if (modalType === 'date') {
+                    const tempDateTask = datedTasks.map(task => {
+                        if (task.id !== modTask.id) {
+                            return task;
+                        } else {
+                            modTask.dayOfWeek = moment(modTask.date).isoWeekday();
+                            return modTask;
+                        }
+                    });
+                    setDatedTasks(tempDateTask);
+                } else  {
+                    let tempWeekTask = [];
+                    if (modTask.week_number !== weekNumber) {
+                        tempWeekTask = weekTasks.filter(task => task.id !== modTask.id);
                     } else {
-                        modTask.dayOfWeek = moment(modTask.date).isoWeekday();
-                        return modTask;
+                        tempWeekTask = weekTasks.map(task => {
+                            if (task.id !== modTask.id) {
+                                return task;
+                            } else {
+                                return modTask;
+                            }
+                        });
                     }
-                });
-                setDatedTasks(tempDateTask);
+                    setWeekTasks(tempWeekTask);
+                }
             })
             .catch (error => {
                 console.log(error);
-                handleCloseDateModal();
+                handleCloseModal();
                 displayAlert(true, 'danger', 'Erreur lors de la modification de la tâche');
             })
     }
 
-    const handleCloseDateModal = () => {
-        setShowDateModal(false);
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setModalId('');
+        setModalDate('');
+        setModalWeek('');
+        setModalYear('');
+        setModalTaskName('');
+        setModalType('');
+        setModifiedTaskLabels([]);
+        setModalNameError(false);
+        setModalWeekYearError(false);
     }
 
     const modalTaskNameChanged = event => {
@@ -330,6 +384,14 @@ function Weekly({weekNum, currentYear}) {
 
     const modalDateChanged = event => {
         setModalDate(event.target.value);
+    }
+
+    const modalYearChanged = event => {
+        setModalYear(event.target.value);
+    }
+
+    const modalWeekChanged = event => {
+        setModalWeek(event.target.value);
     }
 
     const addLabel = (_, label) => {
@@ -351,20 +413,37 @@ function Weekly({weekNum, currentYear}) {
                     {alertMessage}
                 </Alert>
             }
-            <Modal show={showDateModal} onHide={handleCloseDateModal}>
+            <Modal show={showModal} onHide={handleCloseModal}>
                 <Modal.Header>
                     <Modal.Title>Modifier tâche</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
-                    <Form.Group>
+                        <Form.Group>
                             <Form.Label>Nom de la tâche:</Form.Label>
                             <Form.Control className={modalNameError ? 'border-danger' : ''} onChange={modalTaskNameChanged} value={modalTaskName}/>
                         </Form.Group>
-                        <Form.Group>
+                        {modalType === 'date'&& <Form.Group>
                             <Form.Label>Date de la tâche:</Form.Label>
                             <Form.Control type="date" onChange={modalDateChanged} value={modalDate}/>
-                        </Form.Group>
+                        </Form.Group>}
+                        {modalType === 'week' && <Form.Group>
+                            <Form.Label>Année:</Form.Label>
+                            <Form.Control
+                                className={modalWeekYearError ? 'border-danger' : ''}
+                                type="number"
+                                onChange={modalYearChanged}
+                                value={modalYear}/>
+                        </Form.Group>}
+                        {modalType === 'week' && <Form.Group>
+                            <Form.Label>Semaine:</Form.Label>
+                            <Form.Control
+                                className={modalWeekYearError ? 'border-danger' : ''}
+                                placeholder="entre 1 et 53"
+                                type="number"
+                                onChange={modalWeekChanged}
+                                value={modalWeek}/>
+                        </Form.Group>}
                         <Form.Group>
                             <Form.Label>
                                 Etiquettes:
@@ -387,7 +466,7 @@ function Weekly({weekNum, currentYear}) {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={saveTask}>Enregistrer</Button>
-                    <Button onClick={handleCloseDateModal}>Annuler</Button>
+                    <Button onClick={handleCloseModal}>Annuler</Button>
                 </Modal.Footer>
             </Modal>
             <Row>
@@ -469,7 +548,8 @@ function Weekly({weekNum, currentYear}) {
                                     <Button
                                         className="bi bi-pen py-0"
                                         variant="outline-primary"
-                                        style={{fontSize: customButtonSizes.xs}}></Button>
+                                        style={{fontSize: customButtonSizes.xs}}
+                                        onClick={event => openWeekModal(wt.name, wt.year, wt.week_number, wt.id, wt.label)}></Button>
                                 </Stack>
                             </Row>
                         )
