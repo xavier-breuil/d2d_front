@@ -10,7 +10,6 @@ import router from './components/router';
 
 function App() {
   const [googleUser, setGoogleUser] = useState();
-  const [djangoUser, setDjangoUser] = useState();
 
   useEffect(() => {
     if (googleUser) {
@@ -22,8 +21,9 @@ function App() {
             }
         })
         .then(res => {
-            setDjangoUser('test');
-            // TODO: set django user
+          localStorage.setItem('djangoUser', 'test');
+          window.location.reload(false);
+          // TODO: set django user data
         })
         .catch((err) => {
           console.log(err);
@@ -35,7 +35,7 @@ function App() {
 
   return (
     <div className="App">
-      {djangoUser ? (
+      {localStorage.getItem('djangoUser') ? (
         <div>
           <NavBar />
           <RouterProvider router={router}>
