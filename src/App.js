@@ -14,6 +14,7 @@ function App() {
 
   useEffect(() => {
     if (googleUser) {
+      localStorage.setItem('googleAccessToken', googleUser.access_token);
       getGoogleUserData(googleUser.access_token)
         .then(res => {
           setGoogleUserData({mail: res.data.email, name: res.data.name});

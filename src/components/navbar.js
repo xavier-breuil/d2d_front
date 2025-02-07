@@ -9,6 +9,7 @@ const linkFormat = {color: 'white', fontSize: '1.3em'};
 
 const logOut = () => {
   localStorage.removeItem('djangoUser');
+  localStorage.removeItem('googleAccessToken');
   window.location.reload(false);
 }
 

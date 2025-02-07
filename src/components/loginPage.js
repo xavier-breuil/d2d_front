@@ -14,7 +14,8 @@ const LoginPage = ({setUser}) => {
 
     const login = useGoogleLogin({
         onSuccess: responseMessage,
-        onError: errorMessage
+        onError: errorMessage,
+        scope: 'https://www.googleapis.com/auth/calendar.readonly'
     })
 
     return (

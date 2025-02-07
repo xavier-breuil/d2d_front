@@ -11,3 +11,13 @@ export const getGoogleUserData = accessToken => {
             }
         });
 };
+
+export const getGoogleCalendarEvents = (accessToken, minTime, maxTime, calendarId) => {
+    return axios.get(
+        `${googleBaseUrl}calendar/v3/calendars/${calendarId}/events?timeMin=${minTime}&timeMax=${maxTime}`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                Accept: 'application/json'
+            }
+        });
+};
