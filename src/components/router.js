@@ -5,6 +5,7 @@ import Weekly from './weekly';
 import Task from './task';
 import MotList from './motlist';
 import Label from './label';
+import Synchronisation from './synchronisation';
 
 const router = createBrowserRouter([
     {path: '/', element: <Weekly
@@ -12,7 +13,8 @@ const router = createBrowserRouter([
         currentYear={moment().year()}/>,},
     {path: '/task', element: <Task />,},
     {path: '/mot', element: <MotList />,},
-    {path: '/label', element: <Label />,}
+    {path: '/label', element: <Label />,},
+    {path: '/synchronisation', element: <Synchronisation />,}
 ]);
 
 export default router;

@@ -22,6 +22,7 @@ const logOut = () => {
           <Nav.Link href="/task" style={linkFormat}>ajouter une tâche</Nav.Link>
           <Nav.Link href="/mot" style={linkFormat}>tâches récurrentes</Nav.Link>
           <Nav.Link href="/label" style={linkFormat}>étiquettes</Nav.Link>
+          <Nav.Link href="/synchronisation" style={linkFormat}>synchronisation</Nav.Link>
           </Nav>
           <Button onClick={logOut}>Quitter</Button>
         </Navbar.Collapse>
