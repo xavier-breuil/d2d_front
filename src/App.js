@@ -14,7 +14,7 @@ function App() {
 
   useEffect(() => {
     if (googleUser) {
-      localStorage.setItem('googleAccessToken', googleUser.access_token);
+      sessionStorage.setItem('googleAccessToken', googleUser.access_token);
       getGoogleUserData(googleUser.access_token)
         .then(res => {
           setGoogleUserData({mail: res.data.email, name: res.data.name});
@@ -23,7 +23,7 @@ function App() {
           console.log('error getting user data from google:' + err);
         })
         .then(() => {
-          localStorage.setItem('djangoUser', 'test');
+          sessionStorage.setItem('djangoUser', 'test');
           window.location.reload(false);
         })
         .catch((err) => {
@@ -36,7 +36,7 @@ function App() {
 
   return (
     <div className="App">
-      {localStorage.getItem('djangoUser') ? (
+      {sessionStorage.getItem('djangoUser') ? (
         <div>
           <NavBar />
           <RouterProvider router={router}>

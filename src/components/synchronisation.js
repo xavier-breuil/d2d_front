@@ -5,7 +5,7 @@ const Synchronisation = () => {
 
     const synchronize = event => {
         // TODO: get user calendarId elsewhere.
-        getGoogleCalendarEvents(localStorage.getItem('googleAccessToken'), '2025-02-01T00:00:00Z', '2025-02-07T00:00:00Z', process.env.REACT_APP_GOOGLE_CALENDAR_ID)
+        getGoogleCalendarEvents(sessionStorage.getItem('googleAccessToken'), '2025-02-01T00:00:00Z', '2025-02-07T00:00:00Z', process.env.REACT_APP_GOOGLE_CALENDAR_ID)
             .then(resp => {
                 console.log(resp);
             })
